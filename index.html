@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -1295,13 +1294,9 @@
 
         let userName = "Guest";
 
-        // Empty Data (Zeros) for Start
-        const zeroData = ieee30Base.map(d => ({
-            bus: d.bus, mag: 1.0, ang: 0, gp: 0, gq: 0, lp: 0, lq: 0, injQ: 0
-        }));
-
-        let currentData = JSON.parse(JSON.stringify(zeroData));
-        let activeBranches = JSON.parse(JSON.stringify(baseBranchData));
+        // Initial State: Empty
+        let currentData = [];
+        let activeBranches = [];
         let chartInstance = null;
         let network = null; // Vis.js instance
 
@@ -1349,6 +1344,7 @@
             renderInputTable();
             renderTopologyInput();
             renderSidebarTopology();
+            initAddLineModal(); // Refresh dropdowns with new buses
 
             // Update Bus Count Input in Dashboard
             const dashInput = document.getElementById('busCountInput');
@@ -1363,6 +1359,7 @@
         }
 
         // --- RESET TO LANDING ---
+
         function goToLanding() {
             // Hide App
             document.getElementById('mainApp').classList.add('hidden');
@@ -1372,11 +1369,17 @@
             currentData = [];
             activeBranches = [];
 
+            // Reset User Identity
+            document.getElementById('introNameInput').value = '';
+            document.getElementById('displayUserName').innerText = "Guest";
+            userName = "Guest";
+
+            // Reset Inputs
+            if (document.getElementById('setupBusCount')) document.getElementById('setupBusCount').value = "5";
+            if (document.getElementById('busCountInput')) document.getElementById('busCountInput').value = "30";
+
             // Show Intro (Landing Page)
             document.getElementById('introPage').classList.remove('hidden');
-
-            // Optional: Reset User Name
-            // document.getElementById('introNameInput').value = ''; 
         }
 
         // --- HELP SYSTEM CONTENT ---
@@ -1931,8 +1934,11 @@
         function initAddLineModal() {
             const fromSelect = document.getElementById('newFromBus');
             const toSelect = document.getElementById('newToBus');
-            // FIX: Use currentData if available, else ieee30Base if defined, else empty
-            const source = (typeof currentData !== 'undefined' && currentData.length) ? currentData : ((typeof ieee30Base !== 'undefined') ? ieee30Base : []);
+
+            // FIX: Use currentData if available. Do not fallback to ieee30Base if currentData exists (even if empty).
+            // This ensures "Empty System" really means empty dropdowns until buses are added.
+            const source = (typeof currentData !== 'undefined') ? currentData : ((typeof ieee30Base !== 'undefined') ? ieee30Base : []);
+
             const buses = source.map(b => b.bus);
 
             // Populate Dropdowns
