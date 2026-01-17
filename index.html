@@ -432,7 +432,7 @@
                         class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center font-bold text-xl text-slate-900 shadow-inner hover:scale-110 transition cursor-pointer">
                         PH</div>
                     <div>
-                        <h1 class="text-xl font-bold tracking-tight">Smart Grid Simulator</h1>
+                        <h1 class="text-xl font-bold tracking-tight">Web-Based Power Flow Simulator</h1>
                         <p class="text-xs text-slate-400 font-medium">IEEE 30-Bus • PGC Compliant • IEEE Validated</p>
                     </div>
                 </div>
@@ -1800,7 +1800,10 @@
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 border-b border-gray-100 transition">
-                        <td class="px-4 py-2 font-bold text-gray-700 bg-gray-50/50">${row.bus}</td>
+                        <td class="px-4 py-2 font-bold text-gray-700 bg-gray-50/50">
+                            ${row.bus}
+                            ${isSlack ? '<span class="ml-2 text-[10px] bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded border border-yellow-200 uppercase tracking-wide">Slack</span>' : ''}
+                        </td>
                         
                         <td class="px-4 py-2 border-l border-gray-100"><input type="number" class="input-edit ${row.gp === 0 ? 'text-gray-300' : 'text-gray-700'}" value="${row.gp}" onchange="updateData(${index}, 'gp', this.value)"></td>
                         <td class="px-4 py-2"><input type="number" class="input-edit ${row.gq === 0 ? 'text-gray-300' : 'text-gray-700'}" value="${row.gq}" onchange="updateData(${index}, 'gq', this.value)"></td>
