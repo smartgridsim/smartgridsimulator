@@ -1825,7 +1825,7 @@
             // Step 1: Init
             solverQueue.push({
                 node: 'flow-start',
-                text: "> Step 1: Initialization. Set Flat Start.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ |V_i| = 1.0, \\delta_i = 0 $$</div>",
+                text: "> Step 1: Initialization. Set Flat Start.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ V_{start} = 1.0\\angle0^{\\circ}, \\quad S_{sch} \\text{ defined} $$</div>",
                 eq: "$$ |V_i| = 1.0, \\delta_i = 0 \\quad \\forall i \\in \\text{PQ Buses} $$"
             });
 
@@ -1844,39 +1844,39 @@
                 // Mismatches - Detailed Formula
                 solverQueue.push({
                     node: 'flow-mismatch',
-                    text: `> Iteration ${iterations}: Calculating Power Mismatches.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ P_i^{calc} = \\sum |V|\\dots \\implies P_{avg} \\approx ${(1.0 - maxMismatch / 2).toFixed(4)} $$</div>`,
+                    text: `> Iteration ${iterations}: Calculating Flows.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ P_{calc} \\approx ${(1.0 - maxMismatch / 2).toFixed(4)} \\text{ p.u.}, \\quad Q_{calc} \\approx ${(0.5 - maxMismatch / 4).toFixed(4)} \\text{ p.u.} $$</div>`,
                     eq: "$$ P_i^{calc} = \\sum_{k=1}^N |V_i||V_k|(G_{ik}\\cos\\theta_{ik} + B_{ik}\\sin\\theta_{ik}) $$"
                 });
                 solverQueue.push({
                     node: 'flow-mismatch',
-                    text: `> Computing difference from scheduled values.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ \\Delta P = P^{sch} - P^{calc} \\approx ${maxMismatch.toFixed(5)} $$</div>`,
+                    text: `> Computing Residuals (Delta).<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ \\Delta P \\approx ${maxMismatch.toFixed(5)}, \\quad \\Delta Q \\approx ${(maxMismatch * 0.8).toFixed(5)} $$</div>`,
                     eq: "$$ \\Delta P_i = P_i^{sch} - P_i^{calc} \\\\ \\Delta Q_i = Q_i^{sch} - Q_i^{calc} $$"
                 });
 
                 solverQueue.push({
                     node: 'flow-check',
-                    text: `  Max Error: ${(maxMismatch * 1.2).toFixed(5)} p.u. (Target < ${tolerance})<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ |\\Delta_{max}| = ${(maxMismatch * 1.2).toFixed(5)} > \\epsilon $$</div>`,
+                    text: `  Convergence Check.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ \\max(\\Delta P) \\approx ${maxMismatch.toFixed(5)}, \\quad \\max(\\Delta Q) \\approx ${(maxMismatch * 0.9).toFixed(5)} $$</div>`,
                     eq: `$$ \\max(|\\Delta P|, |\\Delta Q|) > \\epsilon (${tolerance}) $$`
                 });
 
-                // Jacobian - Matrix Structure
+                // Jacobian - Matrix Structure (Detailed)
                 solverQueue.push({
                     node: 'flow-jacobian',
-                    text: "> Building Jacobian Matrix J.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ ||J|| \\approx ${(20 + iterations * 2).toFixed(1)} \\text{ (Sensitivity)} $$</div>",
+                    text: "> Building Jacobian Matrix J.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ \\frac{\\partial P}{\\partial \\delta} \\approx ${(10 + iterations).toFixed(1)}, \\quad \\frac{\\partial Q}{\\partial V} \\approx ${(8 + iterations).toFixed(1)} $$</div>",
                     eq: "$$ J = \\begin{bmatrix} \\frac{\\partial P}{\\partial \\delta} & \\frac{\\partial P}{\\partial |V|} \\\\ \\frac{\\partial Q}{\\partial \\delta} & \\frac{\\partial Q}{\\partial |V|} \\end{bmatrix} $$"
                 });
 
                 // Update - Matrix Equation
                 solverQueue.push({
                     node: 'flow-update',
-                    text: "> Solving Linear System (Ax = b).<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ \\Delta x = -J^{-1}\\Delta S \\approx ${(maxMismatch * 0.8).toFixed(5)} $$</div>",
+                    text: "> Solving Linear System (Ax = b).<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ \\Delta \\delta \\approx ${(maxMismatch * 0.5).toFixed(5)} rad, \\quad \\Delta V \\approx ${(maxMismatch * 0.1).toFixed(5)} p.u. $$</div>",
                     eq: "$$ \\begin{bmatrix} \\Delta \\delta \\\\ \\Delta |V| \\end{bmatrix} = - [J]^{-1} \\begin{bmatrix} \\Delta P \\\\ \\Delta Q \\end{bmatrix} $$"
                 });
 
                 // Update - State Variables
                 solverQueue.push({
                     node: 'flow-update',
-                    text: "> Applying corrections to Voltage/Angles.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ |V|_{new} \\approx ${(1.0 + (Math.random()*0.01)).toFixed(4)} $$</div>",
+                    text: "> Applying corrections.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ |V|_{new} \\approx ${(1.0 + Math.random()*0.01).toFixed(4)}, \\quad \\delta_{new} \\approx -${(iterations * 0.5).toFixed(3)}^{\\circ} $$</div>",
                     eq: "$$ \\delta_i^{(k+1)} = \\delta_i^{(k)} + \\Delta \\delta_i \\\\ |V_i|^{(k+1)} = |V_i|^{(k)} + \\Delta |V_i| $$"
                 });
 
@@ -1887,13 +1887,13 @@
             if (maxMismatch <= tolerance) {
                 solverQueue.push({
                     node: 'flow-check',
-                    text: "> Converged! Solution found.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ \\Delta S \\le \\epsilon $$</div>",
+                    text: "> Converged! Solution found.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ \\max(\\epsilon) = ${maxMismatch.toExponential(2)} \\le ${tolerance} $$</div>",
                     eq: "$$ \\text{Solution Found in } " + iterations + " \\text{ Iterations} $$"
                 });
             } else {
                 solverQueue.push({
                     node: 'flow-check',
-                    text: `> FAILED TO CONVERGE.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ Iter > Max (${maxIter}) $$</div>`,
+                    text: `> FAILED TO CONVERGE.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ \\max(\\epsilon) = ${maxMismatch.toFixed(5)} > ${tolerance} $$</div>`,
                     eq: `$$ \\text{Final Mismatch: } ${maxMismatch.toFixed(5)} > \\epsilon $$`
                 });
             }
