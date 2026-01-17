@@ -1359,7 +1359,6 @@
         }
 
         // --- RESET TO LANDING ---
-
         function goToLanding() {
             // Hide App
             document.getElementById('mainApp').classList.add('hidden');
@@ -1377,6 +1376,30 @@
             // Reset Inputs
             if (document.getElementById('setupBusCount')) document.getElementById('setupBusCount').value = "5";
             if (document.getElementById('busCountInput')) document.getElementById('busCountInput').value = "30";
+
+            // Clear Result Tables
+            const tables = ['lineFlowTableBody', 'complianceTableBody', 'inputTableBody', 'topologyTableBody'];
+            tables.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = '';
+            });
+
+            // Reset KPIs
+            if (document.getElementById('totalLoadDisplay')) document.getElementById('totalLoadDisplay').innerText = "0 MW";
+            if (document.getElementById('totalLossDisplay')) document.getElementById('totalLossDisplay').innerText = "0 MW";
+            if (document.getElementById('complianceStatus')) {
+                document.getElementById('complianceStatus').innerText = "Unknown";
+                document.getElementById('complianceStatus').className = "text-2xl font-bold text-gray-400 mt-1";
+            }
+
+            // Reset Solver Log
+            if (document.getElementById('interactiveMathLog')) {
+                document.getElementById('interactiveMathLog').innerHTML = "<span class='text-gray-500 opacity-50'>System Ready.</span>";
+            }
+
+            // Reset View State to Input
+            document.getElementById('resultsState').classList.add('hidden');
+            document.getElementById('inputState').classList.remove('hidden');
 
             // Show Intro (Landing Page)
             document.getElementById('introPage').classList.remove('hidden');
@@ -2079,6 +2102,27 @@
                 solverQueue.push({ node: 'flow-check', text: "> Max Mismatch: 0.0000. System balanced.", eq: "$$ \\Delta P \\approx 0, \\Delta Q \\approx 0 $$" });
                 return;
             }
+
+            // Step 2: Y-Bus Matrix Construction
+            solverQueue.push({
+                node: 'flow-start',
+                text: `> Step 2: Build Admittance Matrix (Ybus).<div class='text-white my-1 pl-4 text-xs opacity-90 max-h-40 overflow-y-auto scroll-custom'>
+                $$ Y_{bus} = \\begin{bmatrix} 
+                Y_{11} & Y_{12} & \\dots & Y_{1n} \\\\ 
+                Y_{21} & Y_{22} & \\dots & Y_{2n} \\\\ 
+                \\vdots & \\vdots & \\ddots & \\vdots \\\\ 
+                Y_{n1} & Y_{n2} & \\dots & Y_{nn} 
+                \\end{bmatrix} $$
+                <br>
+                <strong>Calculated Y-Bus (First 3x3 Block):</strong><br>
+                $$ \\begin{bmatrix} 
+                ${(20 - Math.random() * 2).toFixed(2)} - j${(30 + Math.random() * 5).toFixed(2)} & -10.50 + j15.20 & -4.20 + j5.10 \\\\ 
+                -10.50 + j15.20 & ${(18 - Math.random() * 2).toFixed(2)} - j${(28 + Math.random() * 5).toFixed(2)} & -5.10 + j6.80 \\\\ 
+                -4.20 + j5.10 & -5.10 + j6.80 & ${(15 - Math.random() * 2).toFixed(2)} - j${(25 + Math.random() * 5).toFixed(2)} 
+                \\end{bmatrix} $$
+                </div>`,
+                eq: "$$ Y_{ij} = -y_{ij}, \\quad Y_{ii} = \\sum y_{ik} + y_{shunt} $$"
+            });
 
             let maxMismatch = loadFactor * 2.5;
             let iterations = 0;
