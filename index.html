@@ -1862,7 +1862,7 @@
                 // Jacobian - Matrix Structure (Detailed)
                 solverQueue.push({
                     node: 'flow-jacobian',
-                    text: "> Building Jacobian Matrix J.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ \\frac{\\partial P}{\\partial \\delta} \\approx ${(10 + iterations).toFixed(1)}, \\quad \\frac{\\partial Q}{\\partial V} \\approx ${(8 + iterations).toFixed(1)} $$</div>",
+                    text: "> Building Jacobian Matrix J.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ \\begin{aligned} \\frac{\\partial P}{\\partial \\delta} &\\approx ${(10 + iterations).toFixed(1)} & \\frac{\\partial P}{\\partial V} &\\approx ${(2 + iterations * 0.1).toFixed(1)} \\\\ \\frac{\\partial Q}{\\partial \\delta} &\\approx ${(1 + iterations * 0.1).toFixed(1)} & \\frac{\\partial Q}{\\partial V} &\\approx ${(8 + iterations).toFixed(1)} \\end{aligned} $$</div>",
                     eq: "$$ J = \\begin{bmatrix} \\frac{\\partial P}{\\partial \\delta} & \\frac{\\partial P}{\\partial |V|} \\\\ \\frac{\\partial Q}{\\partial \\delta} & \\frac{\\partial Q}{\\partial |V|} \\end{bmatrix} $$"
                 });
 
@@ -1876,7 +1876,7 @@
                 // Update - State Variables
                 solverQueue.push({
                     node: 'flow-update',
-                    text: "> Applying corrections.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ |V|_{new} \\approx ${(1.0 + Math.random()*0.01).toFixed(4)}, \\quad \\delta_{new} \\approx -${(iterations * 0.5).toFixed(3)}^{\\circ} $$</div>",
+                    text: "> Applying corrections.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ \\begin{aligned} |V|_{new} &= |V|_{old} + ${(maxMismatch * 0.1).toFixed(4)} \\\\ \\delta_{new} &= \\delta_{old} + ${(maxMismatch * 0.5).toFixed(4)} \\end{aligned} $$</div>",
                     eq: "$$ \\delta_i^{(k+1)} = \\delta_i^{(k)} + \\Delta \\delta_i \\\\ |V_i|^{(k+1)} = |V_i|^{(k)} + \\Delta |V_i| $$"
                 });
 
