@@ -603,6 +603,10 @@
                                                     class="ph ph-info text-xs"></i></span></th>
                                         <th class="px-4 py-3 bg-gray-100 text-center border-l border-gray-200"
                                             colspan="2">
+                                            Voltage
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-100 text-center border-l border-gray-200"
+                                            colspan="2">
                                             Generation <span onclick="playSound(); openHelp('genColumn')"
                                                 class="info-btn-sm"><i class="ph ph-info text-xs"></i></span>
                                         </th>
@@ -620,6 +624,10 @@
                                     </tr>
                                     <tr>
                                         <th class="px-4 py-2 bg-gray-50 text-gray-400 font-normal">ID</th>
+                                        <th
+                                            class="px-4 py-2 bg-gray-50 text-right font-normal border-l border-gray-200">
+                                            Mag</th>
+                                        <th class="px-4 py-2 bg-gray-50 text-right font-normal">Angle (deg)</th>
                                         <th
                                             class="px-4 py-2 bg-gray-50 text-right font-normal border-l border-gray-200">
                                             P (MW)</th>
@@ -1805,6 +1813,8 @@
                             ${isSlack ? '<span class="ml-2 text-[10px] bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded border border-yellow-200 uppercase tracking-wide">Slack</span>' : ''}
                         </td>
                         
+                        <td class="px-4 py-2 border-l border-gray-100"><input type="number" step="0.01" class="input-edit text-gray-700" value="${row.mag}" onchange="updateData(${index}, 'mag', this.value)"></td>
+                        <td class="px-4 py-2"><input type="number" step="0.1" class="input-edit ${isSlack ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700'}" value="${row.ang}" ${isSlack ? 'disabled' : ''} onchange="updateData(${index}, 'ang', this.value)"></td>
                         <td class="px-4 py-2 border-l border-gray-100"><input type="number" class="input-edit ${row.gp === 0 ? 'text-gray-300' : 'text-gray-700'}" value="${row.gp}" onchange="updateData(${index}, 'gp', this.value)"></td>
                         <td class="px-4 py-2"><input type="number" class="input-edit ${row.gq === 0 ? 'text-gray-300' : 'text-gray-700'}" value="${row.gq}" onchange="updateData(${index}, 'gq', this.value)"></td>
                         
