@@ -219,6 +219,94 @@
             border-radius: 0.75rem;
             background-color: #fff;
         }
+
+        /* Tour Overlay Styles */
+        .tour-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            pointer-events: none;
+            /* Allow clicking through to highlighted element? No, usually blocks */
+            /* We want to block interaction with non-highlighted elements */
+        }
+
+        .tour-highlight {
+            position: relative;
+            z-index: 10000;
+            box-shadow: 0 0 0 4px #fbbf24, 0 0 0 5000px rgba(0, 0, 0, 0.7);
+            pointer-events: auto;
+            background-color: white;
+            /* Ensure visibility */
+            border-radius: 4px;
+        }
+
+        .tour-tooltip {
+            position: absolute;
+            z-index: 10001;
+            background: white;
+            color: #1e293b;
+            padding: 16px;
+            border-radius: 8px;
+            width: 300px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border-left: 4px solid #fbbf24;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tour-tooltip h4 {
+            font-weight: bold;
+            color: #fbbf24;
+            /* Amber 400 */
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.05em;
+        }
+
+        .tour-tooltip p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .tour-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tour-btn {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tour-btn-next {
+            background: #fbbf24;
+            color: #1e293b;
+            border: none;
+        }
+
+        .tour-btn-next:hover {
+            background: #f59e0b;
+        }
+
+        .tour-btn-skip {
+            background: transparent;
+            color: #94a3b8;
+            border: 1px solid transparent;
+        }
+
+        .tour-btn-skip:hover {
+            color: #64748b;
+        }
     </style>
 </head>
 
@@ -444,6 +532,10 @@
                                 class="ph ph-user-circle"></i> <span id="displayUserName">Guest</span></p>
                     </div>
                     <!-- NEW: Detailed Help Procedure Button -->
+                    <button onclick="playSound(); startTour()"
+                        class="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-1 px-3 rounded text-sm transition flex items-center gap-2 btn-click shadow-sm border border-amber-300">
+                        <i class="ph ph-flag-checkered"></i> Tour
+                    </button>
                     <button onclick="playSound(); openHelp('procedure')"
                         class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-1 px-3 rounded text-sm transition flex items-center gap-2 btn-click shadow-sm border border-blue-400">
                         <i class="ph ph-list-numbers"></i> Steps
@@ -456,6 +548,17 @@
                     <button onclick="playSound(); openSLDModal()"
                         class="text-sm bg-cyan-900/40 hover:bg-cyan-900/60 text-cyan-300 hover:text-white px-3 py-2 rounded-lg font-medium transition flex items-center gap-2 border border-cyan-800/50 btn-click shadow-sm">
                         <i class="ph ph-share-network text-lg"></i> View SLD
+                    </button>
+                    <button onclick="playSound(); exportScenario()"
+                        class="text-sm bg-emerald-900/40 hover:bg-emerald-900/60 text-emerald-300 hover:text-white px-3 py-2 rounded-lg font-medium transition flex items-center gap-2 border border-emerald-800/50 btn-click shadow-sm"
+                        title="Save Scenario to JSON">
+                        <i class="ph ph-download-simple text-lg"></i> Save
+                    </button>
+                    <input type="file" id="importFile" accept=".json" class="hidden" onchange="importScenario(this)">
+                    <button onclick="playSound(); document.getElementById('importFile').click()"
+                        class="text-sm bg-purple-900/40 hover:bg-purple-900/60 text-purple-300 hover:text-white px-3 py-2 rounded-lg font-medium transition flex items-center gap-2 border border-purple-800/50 btn-click shadow-sm"
+                        title="Load Scenario from JSON">
+                        <i class="ph ph-upload-simple text-lg"></i> Load
                     </button>
                     <button onclick="playSound(); goToLanding()"
                         class="text-sm bg-red-900/30 hover:bg-red-900/50 text-red-200 hover:text-white px-3 py-2 rounded-lg font-medium transition flex items-center gap-2 border border-red-900/50 btn-click">
@@ -795,6 +898,11 @@
                                     <i class="ph ph-question text-xs"></i>
                                 </span>
                             </button>
+
+                            <button onclick="playSound(); switchTab('contingency')" id="tab-contingency"
+                                class="tab-inactive py-4 px-2 border-b-2 border-transparent font-medium text-sm whitespace-nowrap flex items-center gap-1 transition-colors text-red-600 hover:text-red-800">
+                                <i class="ph ph-warning-circle"></i> N-1 Contingency
+                            </button>
                             <button onclick="playSound(); switchTab('voltage')" id="tab-voltage"
                                 class="tab-inactive py-4 px-2 border-b-2 border-transparent font-medium text-sm whitespace-nowrap flex items-center gap-1 transition-colors">
                                 Voltage Profile
@@ -915,6 +1023,16 @@
                                             f(x_{old})\).
                                         </li>
                                     </ul>
+                                </div>
+
+                                <!-- NEW: Convergence Graph -->
+                                <div
+                                    class="bg-white border border-gray-200 rounded-lg p-3 shadow-sm h-64 flex flex-col">
+                                    <h5 class="text-xs font-bold text-gray-500 mb-1">Convergence Profile (Max Mismatch
+                                        vs Iteration)</h5>
+                                    <div class="flex-grow w-full relative">
+                                        <canvas id="convergenceChart"></canvas>
+                                    </div>
                                 </div>
 
                                 <!-- Equations Reference (Mini) -->
@@ -1264,6 +1382,99 @@
             { bus: 30, mag: 1.039, ang: -2.643, gp: 0, gq: 0, lp: 10.6, lq: 1.9, injQ: 0 }
         ];
 
+        // --- GUIDED TOUR SYSTEM ---
+        const tourSteps = [
+            { id: 'input-bus-data', title: 'Step 1: Configuration', text: 'Start by configuring your buses here. You can add, remove, or edit Generation and Load values for each bus.', tab: 'bus-data' },
+            { id: 'tab-input-topology', title: 'Step 2: Connect Topology', text: 'Switch to the Grid Topology tab to connect your buses with transmission lines.', tab: 'topology' },
+            { id: 'runBtn', title: 'Step 3: Run Simulation', text: 'Once your system is built, click here to run the Newton-Raphson Power Flow solver.', tab: 'bus-data' },
+            { id: 'resultsState', title: 'Step 4: View Results', text: 'Explore detailed results including Voltage Profiles, Line Flows, and Mathematical Logs.', tab: 'bus-data' }
+        ];
+
+        let currentTourStep = 0;
+
+        function startTour() {
+            currentTourStep = 0;
+            // Create Overlay if not exists
+            if (!document.getElementById('tour-overlay')) {
+                const overlay = document.createElement('div');
+                overlay.id = 'tour-overlay';
+                overlay.className = 'tour-overlay';
+                document.body.appendChild(overlay);
+            }
+            showTourStep();
+        }
+
+        function endTour() {
+            const overlay = document.getElementById('tour-overlay');
+            if (overlay) overlay.remove();
+
+            // Remove lingering highlights or tooltips
+            document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+            document.querySelectorAll('.tour-tooltip').forEach(el => el.remove());
+        }
+
+        function showTourStep() {
+            // Cleanup previous
+            document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+            document.querySelectorAll('.tour-tooltip').forEach(el => el.remove());
+
+            if (currentTourStep >= tourSteps.length) {
+                endTour();
+                return;
+            }
+
+            const step = tourSteps[currentTourStep];
+
+            // Ensure Tab visible if needed
+            if (step.tab) switchInputTab(step.tab);
+
+            const target = document.getElementById(step.id);
+            if (!target) {
+                // Skip if target not found (e.g. results not currently visible)
+                currentTourStep++;
+                showTourStep();
+                return;
+            }
+
+            // Highlight Target
+            target.classList.add('tour-highlight');
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Create Tooltip
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tour-tooltip';
+            tooltip.innerHTML = `
+                <h4>${step.title}</h4>
+                <p>${step.text}</p>
+                <div class="tour-footer">
+                    <button class="tour-btn tour-btn-skip" onclick="endTour()">Skip Tour</button>
+                    <button class="tour-btn tour-btn-next" onclick="nextTourStep()">
+                        ${currentTourStep === tourSteps.length - 1 ? 'Finish' : 'Next'}
+                    </button>
+                </div>
+            `;
+
+            // Position Tooltip (Basic Logic)
+            const rect = target.getBoundingClientRect();
+            // Default: Bottom
+            let top = rect.bottom + 10;
+            let left = rect.left;
+
+            // Adjust if off screen
+            if (left + 300 > window.innerWidth) left = window.innerWidth - 320;
+            if (top + 150 > window.innerHeight) top = rect.top - 160;
+
+            tooltip.style.top = `${top + window.scrollY}px`;
+            tooltip.style.left = `${left + window.scrollX}px`;
+
+            document.body.appendChild(tooltip);
+        }
+
+        function nextTourStep() {
+            currentTourStep++;
+            showTourStep();
+        }
+
         // IEEE 30-Bus BASE Case Data (from PDF Table 1 - NR Method)
         const ieee30Base = [
             { bus: 1, mag: 1.06, ang: 0, gp: 2.61, gq: -0.17, lp: 0, lq: 0, injQ: 0 },
@@ -1410,6 +1621,74 @@
 
             // Show Intro (Landing Page)
             document.getElementById('introPage').classList.remove('hidden');
+        }
+
+        // --- SCENARIO MANAGEMENT ---
+        function exportScenario() {
+            const scenario = {
+                timestamp: new Date().toISOString(),
+                user: userName,
+                description: "Smart Grid Simulator Scenario",
+                busCount: currentData.length,
+                data: currentData,
+                topology: activeBranches
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(scenario, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `grid-scenario-${new Date().toISOString().slice(0, 10)}.json`);
+            document.body.appendChild(downloadAnchorNode); // required for firefox
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function importScenario(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const scenario = JSON.parse(e.target.result);
+
+                    // Basic Validation
+                    if (!scenario.data || !Array.isArray(scenario.data) || !scenario.topology) {
+                        alert("Invalid Scenario File Format. Missing data or topology.");
+                        return;
+                    }
+
+                    // Load Data
+                    currentData = scenario.data;
+                    activeBranches = scenario.topology;
+
+                    // Update User context if reasonable (optional)
+                    // if(scenario.user) userName = scenario.user;
+
+                    // Update UI Reflections
+                    renderInputTable();
+                    renderTopologyInput();
+                    renderSidebarTopology();
+                    initAddLineModal();
+
+                    // Update Bus Count Display
+                    const disp = document.getElementById('busCountDisplay');
+                    if (disp) disp.innerText = currentData.length;
+
+                    // Reset View
+                    resetSimulation();
+
+                    // Feedback
+                    // alert("Scenario loaded successfully with " + currentData.length + " buses.");
+                    // Use a toast or subtle indication instead of alert if possible, but alert is fine for now.
+
+                } catch (err) {
+                    console.error(err);
+                    alert("Error parsing JSON file. Please ensure it is a valid scenario file.");
+                }
+            };
+            reader.readAsText(file);
+            input.value = ''; // Reset input so same file can be selected again
         }
 
         // --- HELP SYSTEM CONTENT ---
@@ -2204,9 +2483,12 @@
             let maxMismatch = loadFactor * 2.5;
             let iterations = 0;
 
+            let iterationData = [];
+
             // Updated Loop Condition with maxIter and dynamic tolerance
             while (maxMismatch > tolerance && iterations < maxIter) {
                 iterations++;
+                iterationData.push({ mismatch: maxMismatch });
 
                 // Mismatches - Detailed Formula
                 solverQueue.push({
@@ -2264,6 +2546,9 @@
                     eq: `$$ \\text{Final Mismatch: } ${maxMismatch.toFixed(5)} > \\epsilon $$`
                 });
             }
+
+            // Render Convergence Chart
+            renderConvergenceChart(iterationData);
         }
 
         function renderSolverStep(stepIndex) {
@@ -2530,6 +2815,74 @@
                             grid: { color: '#f1f5f9' }
                         },
                         x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+
+        let convergenceChartInstance = null;
+
+        function renderConvergenceChart(iterations) {
+            const ctx = document.getElementById('convergenceChart');
+            if (!ctx) return;
+
+            if (convergenceChartInstance) {
+                convergenceChartInstance.destroy();
+            }
+
+            const labels = iterations.map((_, i) => i + 1);
+            const data = iterations.map(it => it.mismatch);
+
+            convergenceChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Max Mismatch (p.u.)',
+                        data: data,
+                        borderColor: '#8b5cf6', // Violet
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.1,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#8b5cf6',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return `Mismatch: ${context.parsed.y.toExponential(4)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'logarithmic',
+                            title: { display: true, text: 'Max Mismatch (|ΔS|)' },
+                            grid: { color: '#f1f5f9' },
+                            ticks: {
+                                callback: function (value, index, values) { // Custom log ticks
+                                    return Number(value.toString());
+                                }
+                            }
+                        },
+                        x: {
+                            title: { display: true, text: 'Iteration Info' },
+                            grid: { display: false }
+                        }
                     }
                 }
             });
