@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -101,8 +100,12 @@
 
         .tab-inactive {
             color: #64748b;
-            hover: text-slate-800;
-            hover: bg-slate-50;
+            transition: all 0.2s;
+        }
+
+        .tab-inactive:hover {
+            color: #1e293b;
+            background-color: #f8fafc;
         }
 
         .input-edit {
@@ -125,8 +128,7 @@
             border-color: #3b82f6;
             background: #fff;
             outline: none;
-            ring: 2px;
-            ring-color: #bfdbfe;
+            box-shadow: 0 0 0 2px #bfdbfe;
         }
 
         .info-btn {
@@ -769,11 +771,17 @@
                                 class="w-full text-sm text-left text-gray-600 border border-gray-200 rounded-lg overflow-hidden">
                                 <thead class="text-xs text-gray-700 uppercase bg-gray-100">
                                     <tr>
-                                        <th class="px-6 py-3">Line ID</th>
-                                        <th class="px-6 py-3">From Bus</th>
-                                        <th class="px-6 py-3">To Bus</th>
-                                        <th class="px-6 py-3">Status</th>
-                                        <th class="px-6 py-3 text-right">Action</th>
+                                        <th class="px-3 py-3">Line ID</th>
+                                        <th class="px-3 py-3">F_BUS</th>
+                                        <th class="px-3 py-3">T_BUS</th>
+                                        <th class="px-3 py-3">r (p.u.)</th>
+                                        <th class="px-3 py-3">x (p.u.)</th>
+                                        <th class="px-3 py-3">b (p.u.)</th>
+                                        <th class="px-3 py-3">TAP <span onclick="playSound(); openHelp('tapParam')"
+                                                class="info-btn-sm"><i class="ph ph-question text-xs"></i></span></th>
+                                        <th class="px-3 py-3">SHIFT <span onclick="playSound(); openHelp('shiftParam')"
+                                                class="info-btn-sm"><i class="ph ph-question text-xs"></i></span></th>
+                                        <th class="px-3 py-3 text-right">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="topologyTableBody" class="divide-y divide-gray-100 bg-white"></tbody>
@@ -2103,6 +2111,25 @@
             < p > The phase shift of the AC waveform relative to the Slack Bus(0°).</p >
                 <p class="mt-2">Power flows from <strong>Higher Angle</strong> to <strong>Lower Angle</strong>. Larger differences mean heavier power flow.</p>
         `
+            },
+            tapParam: {
+                title: "Transformer Tap Ratio",
+                content: `
+                 <p>Adjusts the voltage magnitude transformation ratio.</p>
+                 <ul class="list-disc ml-5 mt-2 space-y-1">
+                    <li><strong>1.0:</strong> Nominal Ratio (No change).</li>
+                    <li><strong>> 1.0:</strong> Steps up voltage on the "From" side.</li>
+                    <li><strong>< 1.0:</strong> Steps down voltage.</li>
+                 </ul>
+                 <p class="mt-2 text-sm text-gray-500">Used to control substantial reactive power flow and bus voltages.</p>
+                `
+            },
+            shiftParam: {
+                title: "Phase Shift Angle (deg)",
+                content: `
+                 <p>Introduce a phase angle difference between the terminals of the transformer.</p>
+                 <p class="mt-2"><strong>Phase Shifting Transformers (PST)</strong> allow control of <em>Active Power (MW)</em> flow independent of generation schedules.</p>
+                `
             }
         };
 
@@ -2198,16 +2225,26 @@
             activeBranches.forEach((b, index) => {
                 tbody.innerHTML += `
             <tr class="hover:bg-gray-50 border-b border-gray-100 transition">
-                        <td class="px-6 py-3 font-mono text-xs text-gray-500">L${b.id}</td>
-                        <td class="px-6 py-3 font-bold text-gray-700">Bus ${b.from}</td>
-                        <td class="px-6 py-3 font-bold text-gray-700">Bus ${b.to}</td>
-                        <td class="px-6 py-3"><span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-bold">Connected</span></td>
-                        <td class="px-6 py-3 text-right">
+                        <td class="px-3 py-2 font-mono text-xs text-gray-500">L${b.id}</td>
+                        <td class="px-3 py-2 font-bold text-gray-700">Bus ${b.from}</td>
+                        <td class="px-3 py-2 font-bold text-gray-700">Bus ${b.to}</td>
+                        <td class="px-3 py-2"><input type="number" step="0.0001" class="input-edit text-gray-700 w-20" value="${b.r !== undefined ? b.r : 0.01}" onchange="updateBranchData(${index}, 'r', this.value)"></td>
+                        <td class="px-3 py-2"><input type="number" step="0.0001" class="input-edit text-gray-700 w-20" value="${b.x !== undefined ? b.x : 0.08}" onchange="updateBranchData(${index}, 'x', this.value)"></td>
+                        <td class="px-3 py-2"><input type="number" step="0.0001" class="input-edit text-gray-700 w-20" value="${b.b !== undefined ? b.b : 0}" onchange="updateBranchData(${index}, 'b', this.value)"></td>
+                        <td class="px-3 py-2"><input type="number" step="0.01" class="input-edit text-gray-700 w-16" value="${b.tap !== undefined ? b.tap : 1.0}" onchange="updateBranchData(${index}, 'tap', this.value)"></td>
+                        <td class="px-3 py-2"><input type="number" step="0.1" class="input-edit text-gray-700 w-16" value="${b.shift !== undefined ? b.shift : 0}" onchange="updateBranchData(${index}, 'shift', this.value)"></td>
+                        <td class="px-3 py-2 text-right">
                             <button onclick="playSound(); removeLine(${index})" class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 btn-click"><i class="ph ph-trash"></i></button>
                         </td>
                     </tr>
             `;
             });
+        }
+
+        function updateBranchData(index, field, val) {
+            if (activeBranches[index]) {
+                activeBranches[index][field] = parseFloat(val);
+            }
         }
 
         // --- DATA UPDATES ---
@@ -2233,6 +2270,12 @@
             currentData.forEach(bus => {
                 if (bus.bus === 1) return; // Skip Slack (ref)
 
+                // Randomize Voltage (Initial Guess)
+                // Mag: 0.90 to 1.10 p.u.
+                bus.mag = parseFloat((0.9 + Math.random() * 0.2).toFixed(3));
+                // Angle: -10 to +10 degrees
+                bus.ang = parseFloat((-10 + Math.random() * 20).toFixed(2));
+
                 // Random Load: 70% chance to have load
                 if (Math.random() > 0.3) {
                     bus.lp = Math.floor(Math.random() * 45) + 5; // 5 to 50 MW
@@ -2241,17 +2284,14 @@
                     bus.lp = 0; bus.lq = 0;
                 }
 
-
-
-                // Random Gen: Ensure at least some generation to balance load
-                // Increase probability of Gen if Bus ID is low (closer to Slack)
+                // Random Gen
                 if (Math.random() > 0.8 || bus.bus <= 3) {
                     bus.gp = Math.floor(Math.random() * 40) + 10;
                 } else {
                     bus.gp = 0; bus.gq = 0;
                 }
 
-                // Random Injection (Capacitor bank): 10% chance
+                // Random Injection
                 if (Math.random() > 0.9) {
                     bus.injQ = (Math.random() * 5).toFixed(1);
                 } else {
@@ -2277,7 +2317,16 @@
 
             // 1. Create a Linear Backbone (1-2-3--N) to ensure connectivity
             for (let i = 0; i < buses.length - 1; i++) {
-                activeBranches.push({ id: i + 1, from: buses[i], to: buses[i + 1] });
+                activeBranches.push({
+                    id: i + 1,
+                    from: buses[i],
+                    to: buses[i + 1],
+                    r: parseFloat((0.005 + Math.random() * 0.04).toFixed(4)), // 0.005 - 0.045
+                    x: parseFloat((0.02 + Math.random() * 0.10).toFixed(4)),  // 0.02 - 0.12
+                    b: parseFloat((0.0 + Math.random() * 0.03).toFixed(4)),   // 0.00 - 0.03
+                    tap: 1.0,
+                    shift: 0
+                });
             }
 
             // 2. Add Random Cross-Links (Ring/Mesh) - 30% density
@@ -2294,7 +2343,16 @@
 
                     if (!exists) {
                         const newId = activeBranches.length + 1;
-                        activeBranches.push({ id: newId, from: from, to: to });
+                        activeBranches.push({
+                            id: newId,
+                            from: from,
+                            to: to,
+                            r: parseFloat((0.01 + Math.random() * 0.05).toFixed(4)),
+                            x: parseFloat((0.04 + Math.random() * 0.15).toFixed(4)),
+                            b: parseFloat((0.0 + Math.random() * 0.04).toFixed(4)),
+                            tap: 1.0,
+                            shift: 0
+                        });
                     }
                 }
             }
@@ -2387,7 +2445,16 @@
 
             // Add Line
             const newId = activeBranches.length > 0 ? Math.max(...activeBranches.map(b => b.id)) + 1 : 1;
-            activeBranches.push({ id: newId, from: from, to: to });
+            activeBranches.push({
+                id: newId,
+                from: from,
+                to: to,
+                r: parseFloat((0.01 + Math.random() * 0.05).toFixed(4)),
+                x: parseFloat((0.04 + Math.random() * 0.12).toFixed(4)),
+                b: parseFloat((0.0 + Math.random() * 0.02).toFixed(4)),
+                tap: 1.0,
+                shift: 0
+            });
             renderTopologyInput();
             renderSidebarTopology();
             closeAddLineModal();
@@ -2499,29 +2566,41 @@
             const size = buses.length;
 
             // Init YBus Complex Array [real, imag]
-            let Ybus = Array(size).fill(0).map(() => Array(size).fill([0, 0]));
+            // Use distinct objects for each cell
+            let Ybus = Array.from({ length: size }, () =>
+                Array.from({ length: size }, () => ({ g: 0, b: 0 }))
+            );
 
-            // Populate diagonal and off-diagonal
+            // Populate Ybus Structure
             activeBranches.forEach(br => {
                 const i = buses.indexOf(br.from);
                 const k = buses.indexOf(br.to);
                 if (i === -1 || k === -1) return;
 
-                // Typical Line Impedance: R=0.01, X=0.08 => Z = 0.01+j0.08
-                // Y = 1/Z = (R - jX) / (R^2 + X^2)
-                // 0.01^2 + 0.08^2 = 0.0001 + 0.0064 = 0.0065
-                // G = 0.01/0.0065 = 1.53, B = -0.08/0.0065 = -12.3
-                const G = 1.53;
-                const B = -12.30;
+                // Default values if undefined
+                const r = br.r !== undefined ? br.r : 0.01;
+                const x = br.x !== undefined ? br.x : 0.08;
+                const b_ch = br.b !== undefined ? br.b : 0; // Total Charging Susceptance
 
-                // Off-diagonal: Y_ik = -y_ik = -(G + jB) = -G - jB
-                Ybus[i][k] = [-G, -B];
-                Ybus[k][i] = [-G, -B];
+                // Series Admittance y = 1/(r+jx) = (r - jx)/(r^2 + x^2)
+                const den = r * r + x * x;
+                const G_s = den > 0 ? r / den : 10000;
+                const B_s = den > 0 ? -x / den : -10000;
 
-                // Diagonal: Add y_ik to sum
-                // We'll treat Ybus[i][i] as accumulators for now, starting 0
-                // But wait, Ybus init is arrays. 
-                // Let's re-init correctly
+                // Off-diagonal: Y_ik = -y_ik
+                Ybus[i][k].g -= G_s;
+                Ybus[i][k].b -= B_s;
+
+                Ybus[k][i].g -= G_s;
+                Ybus[k][i].b -= B_s;
+
+                // Diagonal: Y_ii = sum(y_ik) + y_shunt
+                // Add series part
+                Ybus[i][i].g += G_s;
+                Ybus[i][i].b += B_s + (b_ch / 2);
+
+                Ybus[k][k].g += G_s;
+                Ybus[k][k].b += B_s + (b_ch / 2);
             });
 
             // Re-calc Diagonals properly
@@ -2533,24 +2612,17 @@
 
             for (let r = 0; r < displayLimit; r++) {
                 for (let c = 0; c < displayLimit; c++) {
-                    // Simulate values for visuals if not fully calculated
-                    let val = "";
-                    if (r === c) {
-                        // Diagonal: Sum of connected lines ~ (3 - j25) magnitude
-                        val = `${(5 + Math.random()).toFixed(2)} - j${(20 + Math.random() * 5).toFixed(2)} `;
+                    const cell = Ybus[r][c];
+
+                    // Format Complex Number
+                    // If near zero
+                    if (Math.abs(cell.g) < 0.001 && Math.abs(cell.b) < 0.001) {
+                        yMatrixHTML += "0";
                     } else {
-                        // Check connection
-                        const connected = activeBranches.some(b =>
-                            (b.from === buses[r] && b.to === buses[c]) ||
-                            (b.from === buses[c] && b.to === buses[r])
-                        );
-                        if (connected) {
-                            val = `${(-1.5).toFixed(2)} + j${(12.3).toFixed(2)} `;
-                        } else {
-                            val = "0";
-                        }
+                        const sign = cell.b >= 0 ? "+" : "-";
+                        yMatrixHTML += `${cell.g.toFixed(2)} ${sign} j${Math.abs(cell.b).toFixed(2)}`;
                     }
-                    yMatrixHTML += val;
+
                     if (c < displayLimit - 1) yMatrixHTML += " & ";
                 }
                 if (r < displayLimit - 1) yMatrixHTML += " \\\\ ";
