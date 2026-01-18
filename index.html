@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -537,12 +538,8 @@
                         <i class="ph ph-flag-checkered"></i> Tour
                     </button>
                     <button onclick="playSound(); openHelp('procedure')"
-                        class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-1 px-3 rounded text-sm transition flex items-center gap-2 btn-click shadow-sm border border-blue-400">
-                        <i class="ph ph-list-numbers"></i> Steps
-                    </button>
-                    <button onclick="playSound(); openHelp('intro')"
-                        class="text-sm bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-blue-300 font-medium transition flex items-center gap-2 border border-slate-700 btn-click">
-                        <i class="ph ph-book-open text-lg"></i> User Guide
+                        class="text-sm bg-blue-900/40 hover:bg-blue-900/60 text-blue-200 hover:text-white px-3 py-2 rounded-lg font-medium transition flex items-center gap-2 border border-blue-800/50 btn-click shadow-sm">
+                        <i class="ph ph-book-open text-lg"></i> User Manual
                     </button>
                     <!-- SLD Button -->
                     <button onclick="playSound(); openSLDModal()"
@@ -660,13 +657,11 @@
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                         <div class="border-b border-gray-200 bg-gray-50 px-4">
                             <nav class="-mb-px flex space-x-8">
-                                <button onclick="playSound(); switchInputTab('bus-data')" id="tab-input-bus-data"
-                                    class="tab-active py-3 px-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors">
-                                    <i class="ph ph-table"></i> Bus Data (Table 1)
-                                    <span onclick="event.stopPropagation(); openHelp('busData')" class="info-btn-sm"
-                                        title="What is Bus Data?">
-                                        <i class="ph ph-question text-xs"></i>
-                                    </span>
+                                <button id="tab-input-bus-data" onclick="switchInputTab('bus-data')"
+                                    class="tab-active px-4 py-2 text-sm font-medium rounded-t-lg bg-white border-b-2 border-blue-600 text-blue-600 flex items-center gap-2 transition-colors">
+                                    <i class="ph ph-table"></i> Bus Data
+                                    <i class="ph ph-question text-xs text-blue-300 hover:text-blue-500 cursor-pointer"
+                                        onclick="event.stopPropagation(); openHelp('busData')"></i>
                                 </button>
                                 <button onclick="playSound(); switchInputTab('topology')" id="tab-input-topology"
                                     class="tab-inactive py-3 px-4 border-b-2 border-transparent font-medium text-sm flex items-center gap-2 transition-colors">
@@ -1438,10 +1433,18 @@
 
         // --- GUIDED TOUR SYSTEM ---
         const tourSteps = [
-            { id: 'input-bus-data', title: 'Step 1: Configuration', text: 'Start by configuring your buses here. You can add, remove, or edit Generation and Load values for each bus.', tab: 'bus-data' },
-            { id: 'tab-input-topology', title: 'Step 2: Connect Topology', text: 'Switch to the Grid Topology tab to connect your buses with transmission lines.', tab: 'topology' },
-            { id: 'runBtn', title: 'Step 3: Run Simulation', text: 'Once your system is built, click here to run the Newton-Raphson Power Flow solver.', tab: 'bus-data' },
-            { id: 'resultsState', title: 'Step 4: View Results', text: 'Explore detailed results including Voltage Profiles, Line Flows, and Mathematical Logs.', tab: 'bus-data' }
+            { id: 'displayUserName', title: 'Welcome Operator', text: 'Welcome to the Smart Grid Simulator. You are currently logged in as the system operator.', tab: 'bus-data' },
+            { id: 'busCountDisplay', title: 'System Size', text: 'This indicates the current number of buses in your power system.', tab: 'bus-data' },
+            { id: 'input-bus-data', title: 'Bus Configuration', text: 'This is the heart of your system design. Here you define the electrical properties for each bus.', tab: 'bus-data' },
+            { id: 'inputTableBody', title: 'Bus Data Table', text: '<strong>Slack Bus (1):</strong> The reference bus (0° angle).<br><strong>Gen (MW/Mvar):</strong> Power generated.<br><strong>Load (MW/Mvar):</strong> Power consumed.', tab: 'bus-data' },
+            { id: 'tab-input-topology', title: 'Grid Topology', text: 'Switch to this tab to define the physical transmission lines connecting your buses.', tab: 'topology' },
+            { id: 'btnPopulate', title: 'Auto-Connect', text: 'Use this magic wand to automatically generate a standard connection layout for your buses.', tab: 'topology' },
+            { id: 'runBtn', title: 'Run Simulation', text: 'Click this button to execute the Newton-Raphson Power Flow Algorithm.', tab: 'bus-data' },
+            { id: 'resultsState', title: 'Simulation Results', text: 'After running, this section appears with detailed analysis.', tab: 'bus-data' },
+            { id: 'tab-line-flows', title: 'Line Flows', text: 'View real, reactive power flows, and losses for every transmission line.', tab: 'results' }, // Logic to ensure results are visible needed?
+            { id: 'tab-voltage', title: 'Voltage Profile', text: 'Visual chart of voltage magnitudes across the system. Check for under/over-voltage.', tab: 'results' },
+            { id: 'tab-math', title: 'Solver Console', text: 'Step-by-step mathematical log of the iterative solution process.', tab: 'results' },
+            { id: 'tab-contingency', title: 'N-1 Analysis', text: 'Simulate reliability by testing the system against single-line failures.', tab: 'results' }
         ];
 
         let currentTourStep = 0;
@@ -1480,7 +1483,15 @@
             const step = tourSteps[currentTourStep];
 
             // Ensure Tab visible if needed
-            if (step.tab) switchInputTab(step.tab);
+            if (step.tab === 'bus-data' || step.tab === 'topology') {
+                switchInputTab(step.tab);
+            } else if (step.tab === 'results' || ['line-flows', 'voltage', 'math', 'contingency'].includes(step.id.replace('tab-', ''))) {
+                // For results, we assume results are visible. 
+                // If specific result tab is targeted, switch to it.
+                if (step.id.startsWith('tab-')) {
+                    switchTab(step.id.replace('tab-', ''));
+                }
+            }
 
             const target = document.getElementById(step.id);
             if (!target) {
@@ -1772,11 +1783,32 @@
                 title: "Comprehensive User Guide & Procedures",
                 content: `
                     <div class="space-y-6 text-gray-700">
+                        <!-- MERGED INTRO SECTION -->
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
+                            <p class="mb-4 text-sm text-blue-900 leading-relaxed">
+                                This interactive tool simulates the operation of the <strong>IEEE 30-Bus System</strong> and custom user-defined grids. It utilizes the Newton-Raphson method to solve power flow equations and is designed to comply with PGC standards.
+                            </p>
+                            <h5 class="font-bold text-blue-800 text-sm mb-2">Key Features at a Glance:</h5>
+                            <ul class="list-disc ml-5 space-y-1 text-xs text-blue-800">
+                                <li><strong>Custom Topology:</strong> Modify buses, generation, loads, and lines.</li>
+                                <li><strong>Live Solver:</strong> Step-by-step visualization of the Newton-Raphson iteration.</li>
+                                <li><strong>N-1 Analysis:</strong> Test grid reliability against line faults.</li>
+                                <li><strong>Compliance:</strong> Automatic checking against Philippine Grid Code voltage/frequency limits.</li>
+                            </ul>
+                        </div>
                         
                         <section>
                             <h4 class="font-bold text-blue-700 text-lg mb-2 flex items-center gap-2">
                                 <span class="bg-blue-100 text-blue-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span> 
-                                System Initialization
+                                Getting Started
+                            </h4>
+                            <p class="text-sm text-gray-600 mb-3">Follow this standard workflow to perform a simulation:</p>
+                        </section>
+
+                        <section>
+                            <h4 class="font-bold text-blue-700 text-lg mb-2 flex items-center gap-2">
+                                <span class="bg-blue-100 text-blue-700 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span> 
+                                Configuration
                             </h4>
                             <p class="mb-2 text-sm">Choose how you want to start:</p>
                             <ul class="list-disc ml-8 space-y-1 text-sm text-gray-600">
@@ -1830,64 +1862,64 @@
                                 </li>
                             </ol>
                         </section>
-                    </div>
-                `
+                    </div >
+            `
             },
             config: {
                 title: "System Configuration Guide",
                 content: `
-                    <p class="mb-3">The configuration section allows you to modify the physical state of the power grid before running a simulation.</p>
+            <p class="mb-3">The configuration section allows you to modify the physical state of the power grid before running a simulation.</p>
                     <p class="mb-3">The system initializes with <strong>IEEE 30-Bus Standard Data</strong>. You can simulate different scenarios (e.g., peak load, generator failure) by changing the values in the table.</p>
                     <p class="text-sm text-gray-500 italic">Tip: If you make a mistake or the system becomes unstable, click "Reset IEEE Defaults" to restore the original values.</p>
-                `
+        `
             },
             busData: {
                 title: "Understanding Bus Data (Table 1)",
                 content: `
-                    <p class="mb-3">This table defines the state of every bus (node) in the network.</p>
-                    <div class="space-y-3">
-                        <div class="bg-blue-50 p-3 rounded border border-blue-100">
-                            <strong class="text-blue-800">Generation (P & Q)</strong>
-                            <p class="text-sm text-blue-700">Power created by power plants. <strong>P</strong> is Active Power (MW) which does the work. <strong>Q</strong> is Reactive Power (Mvar) needed to maintain voltage levels.</p>
-                        </div>
-                        <div class="bg-purple-50 p-3 rounded border border-purple-100">
-                            <strong class="text-purple-800">Load (P & Q)</strong>
-                            <p class="text-sm text-purple-700">Power consumed by cities or factories connected to that bus.</p>
-                        </div>
-                        <div class="bg-gray-50 p-3 rounded border border-gray-100">
-                            <strong class="text-gray-800">Injection (Q)</strong>
-                            <p class="text-sm text-gray-700">Capacitor banks or reactors added to support voltage locally.</p>
-                        </div>
+            <p class="mb-3">This table defines the state of every bus(node) in the network.</p>
+                <div class="space-y-3">
+                    <div class="bg-blue-50 p-3 rounded border border-blue-100">
+                        <strong class="text-blue-800">Generation (P & Q)</strong>
+                        <p class="text-sm text-blue-700">Power created by power plants. <strong>P</strong> is Active Power (MW) which does the work. <strong>Q</strong> is Reactive Power (Mvar) needed to maintain voltage levels.</p>
                     </div>
-                `
+                    <div class="bg-purple-50 p-3 rounded border border-purple-100">
+                        <strong class="text-purple-800">Load (P & Q)</strong>
+                        <p class="text-sm text-purple-700">Power consumed by cities or factories connected to that bus.</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded border border-gray-100">
+                        <strong class="text-gray-800">Injection (Q)</strong>
+                        <p class="text-sm text-gray-700">Capacitor banks or reactors added to support voltage locally.</p>
+                    </div>
+                </div>
+        `
             },
             topology: {
                 title: "Grid Topology & Transmission Lines",
                 content: `
-                    <p class="mb-3">The topology defines how buses are connected. Transmission lines carry power between buses.</p>
+            <p class="mb-3">The topology defines how buses are connected. Transmission lines carry power between buses.</p>
                     <ul class="list-disc ml-5 mb-4 space-y-2">
                         <li><strong>Redundancy:</strong> Loops in the grid provide reliability. If one line fails, power can flow through another path.</li>
                         <li><strong>Radial vs. Meshed:</strong> The IEEE 30-bus system is a meshed network, typical of high-voltage transmission grids.</li>
                     </ul>
                     <p class="mb-3"><strong>Simulator Action:</strong> You can "Add Line" to create new paths or click the Trash icon to simulate a line trip/failure.</p>
-                `
+        `
             },
             results: {
                 title: "Interpreting Simulation Results",
                 content: `
-                    <p class="mb-3">After clicking "Run Simulation", the app performs a <strong>Newton-Raphson Power Flow</strong> calculation. This solves the complex non-linear equations of the grid.</p>
+            <p class="mb-3">After clicking "Run Simulation", the app performs a <strong>Newton-Raphson Power Flow</strong> calculation. This solves the complex non-linear equations of the grid.</p>
                     <h4 class="font-bold text-gray-800 mb-2">Key Metrics:</h4>
                     <ul class="list-disc ml-5 mb-4 space-y-2">
                         <li><strong>Total Generation vs Load:</strong> Generation must always equal Load + Losses.</li>
                         <li><strong>System Losses:</strong> Energy lost as heat in transmission lines (I²R losses). Lower is better.</li>
                         <li><strong>Line Flows:</strong> Shows how much power is moving through each specific wire.</li>
                     </ul>
-                `
+        `
             },
             compliance: {
                 title: "PGC & PDC Compliance Standards",
                 content: `
-                    <p class="mb-4">Grid operators must ensure voltage levels remain stable to prevent equipment damage or blackouts.</p>
+            <p class="mb-4">Grid operators must ensure voltage levels remain stable to prevent equipment damage or blackouts.</p>
                     <div class="space-y-4">
                         <div class="border-l-4 border-green-500 pl-4">
                             <h5 class="font-bold text-gray-800">Philippine Grid Code (PGC)</h5>
@@ -1901,12 +1933,12 @@
                         </div>
                     </div>
                     <p class="mt-4 text-sm text-gray-500"><strong>p.u. (Per Unit):</strong> A normalized value. 1.0 p.u. represents the ideal rated voltage (e.g., 230 kV). 0.95 p.u. means 95% of rated voltage.</p>
-                `
+        `
             },
             tabSLD: {
                 title: "Single Line Diagram",
                 content: `
-                    <p class="mb-3">This tab visualizes the electrical network topology using standard symbols.</p>
+            <p class="mb-3">This tab visualizes the electrical network topology using standard symbols.</p>
                     <ul class="list-disc ml-5 space-y-2">
                         <li><strong>Black Bar:</strong> Represents a Bus (Node).</li>
                         <li><strong>Circle:</strong> Represents a Generator.</li>
@@ -1914,163 +1946,163 @@
                         <li><strong>Lines:</strong> Represent transmission lines connecting buses.</li>
                     </ul>
                     <p class="mt-2 text-sm text-gray-500">You can drag nodes to rearrange the view. The layout updates automatically if you add/remove buses.</p>
-                `
+        `
             },
             // --- NEW TOPICS ---
             gridStatus: {
                 title: "Grid Status Indicator",
                 content: `
-                    <p class="mb-3">This indicator shows if the power grid is electrically <strong>coherent</strong>.</p>
-                    <ul class="list-disc ml-5 mb-4 space-y-2">
-                        <li><strong>Connected:</strong> All buses can reach each other. The slack bus can support the entire system.</li>
-                        <li><strong>Islanded:</strong> The grid has split into separate pieces. This usually causes simulation failure because one island lacks a power source.</li>
-                    </ul>
-                `
+            <p class="mb-3">This indicator shows if the power grid is electrically <strong>coherent</strong>.</p>
+                <ul class="list-disc ml-5 mb-4 space-y-2">
+                    <li><strong>Connected:</strong> All buses can reach each other. The slack bus can support the entire system.</li>
+                    <li><strong>Islanded:</strong> The grid has split into separate pieces. This usually causes simulation failure because one island lacks a power source.</li>
+                </ul>
+        `
             },
             liveConnections: {
                 title: "Live Connection Feed",
                 content: `
-                    <p>This sidebar list represents the real-time "digital twin" of the transmission network. It updates dynamically as you add or remove lines in the topology editor.</p>
-                    <p class="mt-2 text-sm text-gray-500">It helps you visualize the density of connections in the network.</p>
-                `
+            <p>This sidebar list represents the real-time "digital twin" of the transmission network. It updates dynamically as you add or remove lines in the topology editor.</p>
+                <p class="mt-2 text-sm text-gray-500">It helps you visualize the density of connections in the network.</p>
+        `
             },
             resetDefaults: {
                 title: "Reset IEEE 30-Bus Defaults",
                 content: `
-                    <p>Clicking this button completely <strong>discards all your changes</strong> to bus data and topology.</p>
-                    <p class="mt-2">It restores the system to the standard <strong>IEEE 30-Bus Test Case</strong> configuration, which is a known stable operating point. Use this if your simulation stops converging.</p>
-                `
+            <p>Clicking this button completely <strong>discards all your changes</strong> to bus data and topology.</p>
+                <p class="mt-2">It restores the system to the standard <strong>IEEE 30-Bus Test Case</strong> configuration, which is a known stable operating point. Use this if your simulation stops converging.</p>
+        `
             },
             preSim: {
                 title: "Pre-Simulation Mode",
                 content: `
-                    <p>You are currently in <strong>Edit Mode</strong>. The values you see are input parameters.</p>
-                    <p class="mt-2">The physics engine is not running yet. Changes you make here (like increasing Load MW) will not affect voltages until you click <strong>Run Simulation</strong>.</p>
-                `
+            <p>You are currently in <strong>Edit Mode</strong>. The values you see are input parameters.</p>
+                <p class="mt-2">The physics engine is not running yet. Changes you make here (like increasing Load MW) will not affect voltages until you click <strong>Run Simulation</strong>.</p>
+        `
             },
             busColumn: {
                 title: "Bus ID",
                 content: `
-                    <p>A unique identifier for each node (substation) in the power system.</p>
-                    <p class="mt-2"><strong>Bus 1</strong> is typically the <strong>Slack Bus</strong> (Reference Bus) which balances the system's power.</p>
-                `
+            <p>A unique identifier for each node(substation) in the power system.</p>
+                <p class="mt-2"><strong>Bus 1</strong> is typically the <strong>Slack Bus</strong> (Reference Bus) which balances the system's power.</p>
+        `
             },
             genColumn: {
                 title: "Generation (P & Q)",
                 content: `
-                    <p><strong>P (Active Power):</strong> The actual energy doing work (Megawatts). Supplied by turbines.</p>
-                    <p class="mt-2"><strong>Q (Reactive Power):</strong> The power required to maintain magnetic fields (Megavars). Supplied by exciters.</p>
-                `
+            < p > <strong>P (Active Power):</strong> The actual energy doing work(Megawatts).Supplied by turbines.</p >
+                <p class="mt-2"><strong>Q (Reactive Power):</strong> The power required to maintain magnetic fields (Megavars). Supplied by exciters.</p>
+        `
             },
             loadColumn: {
                 title: "Load (P & Q)",
                 content: `
-                    <p>The power demand at this bus. Represents the aggregate consumption of a city or industrial zone.</p>
-                    <p class="mt-2">Changing these values simulates peak load (high demand) or off-peak (low demand) scenarios.</p>
-                `
+            < p > The power demand at this bus.Represents the aggregate consumption of a city or industrial zone.</p >
+                <p class="mt-2">Changing these values simulates peak load (high demand) or off-peak (low demand) scenarios.</p>
+        `
             },
             injColumn: {
                 title: "Reactive Injection (Q)",
                 content: `
-                    <p>Static devices attached to the bus to support voltage.</p>
-                    <ul class="list-disc ml-5 mt-2 space-y-1">
-                        <li><strong>Positive:</strong> Capacitor Bank (Boosts Voltage).</li>
-                        <li><strong>Negative:</strong> Reactor (Lowers Voltage).</li>
-                    </ul>
-                `
+            < p > Static devices attached to the bus to support voltage.</p >
+                <ul class="list-disc ml-5 mt-2 space-y-1">
+                    <li><strong>Positive:</strong> Capacitor Bank (Boosts Voltage).</li>
+                    <li><strong>Negative:</strong> Reactor (Lowers Voltage).</li>
+                </ul>
+        `
             },
             topologyList: {
                 title: "Topology List",
                 content: `
-                    <p>This table defines the physical wires connecting the buses. You can delete lines to simulate faults (N-1 Contingency Analysis).</p>
+            < p > This table defines the physical wires connecting the buses.You can delete lines to simulate faults(N - 1 Contingency Analysis).</p >
                 `
             },
             addLine: {
                 title: "Add Transmission Line",
                 content: `
-                    <p>Opens a tool to build new connections. Adding parallel lines increases capacity and reliability but reduces the total impedance between buses.</p>
-                `
+                < p > Opens a tool to build new connections.Adding parallel lines increases capacity and reliability but reduces the total impedance between buses.</p >
+                    `
             },
             kpiGen: {
                 title: "Total Generation",
                 content: `
-                    <p class="text-2xl font-bold text-blue-600 mb-2">Σ Gen = Σ Load + Σ Losses</p>
-                    <p>The sum of all power produced by generators. This value is calculated <strong>after</strong> the simulation to ensure it exactly meets demand plus system inefficiencies.</p>
-                `
+                    < p class="text-2xl font-bold text-blue-600 mb-2" > Σ Gen = Σ Load + Σ Losses</p >
+                        <p>The sum of all power produced by generators. This value is calculated <strong>after</strong> the simulation to ensure it exactly meets demand plus system inefficiencies.</p>
+        `
             },
             kpiLoad: {
                 title: "Total System Load",
                 content: `
-                    <p>The total power demand requested by consumers across all 30 buses. This is your independent variable—the system must work to meet this target.</p>
+            < p > The total power demand requested by consumers across all 30 buses.This is your independent variable—the system must work to meet this target.</p >
                 `
             },
             kpiLoss: {
                 title: "System Losses (I²R)",
                 content: `
-                    <p>Energy wasted as heat in the transmission lines.</p>
+                < p > Energy wasted as heat in the transmission lines.</p >
                     <p class="mt-2"><strong>Formula:</strong> Loss = I² × R</p>
                     <p>High losses mean the grid is inefficient, often caused by transmitting power over long distances or overloading lines.</p>
-                `
+        `
             },
             kpiStatus: {
                 title: "Grid Code Status",
                 content: `
-                    <p>A quick summary of regulatory compliance.</p>
-                    <ul class="list-disc ml-5 mt-2 space-y-1">
-                        <li><strong>COMPLIANT:</strong> All bus voltages are within limits.</li>
-                        <li><strong>NON-COMPLIANT:</strong> At least one bus is experiencing under-voltage or over-voltage.</li>
-                    </ul>
-                `
+            < p > A quick summary of regulatory compliance.</p >
+                <ul class="list-disc ml-5 mt-2 space-y-1">
+                    <li><strong>COMPLIANT:</strong> All bus voltages are within limits.</li>
+                    <li><strong>NON-COMPLIANT:</strong> At least one bus is experiencing under-voltage or over-voltage.</li>
+                </ul>
+        `
             },
             tabLineFlows: {
                 title: "Table 2: Line Flows",
                 content: `
-                    <p>Detailed breakdown of power movement through every line.</p>
-                    <p class="mt-2">Allows you to spot <strong>Congestion</strong> (overloaded lines) and identify where the most power is being lost.</p>
-                `
+            < p > Detailed breakdown of power movement through every line.</p >
+                <p class="mt-2">Allows you to spot <strong>Congestion</strong> (overloaded lines) and identify where the most power is being lost.</p>
+        `
             },
             tabOPF: {
                 title: "Table 5: OPF Results",
                 content: `
-                    <p><strong>Optimal Power Flow (OPF)</strong> results showing the final state of every bus after the Newton-Raphson solver converges.</p>
-                    <p class="mt-2">This is the "Answer Key" to your simulation configuration.</p>
-                `
+            < p > <strong>Optimal Power Flow (OPF)</strong> results showing the final state of every bus after the Newton - Raphson solver converges.</p >
+                <p class="mt-2">This is the "Answer Key" to your simulation configuration.</p>
+        `
             },
             tabVoltage: {
                 title: "Voltage Profile Chart",
                 content: `
-                    <p>A visual graph of voltage stability.</p>
-                    <p class="mt-2">Look for the line dipping below <strong>0.95</strong> (Sag) or rising above <strong>1.05</strong> (Swell). A flat line near 1.0 is ideal.</p>
-                `
+            < p > A visual graph of voltage stability.</p >
+                <p class="mt-2">Look for the line dipping below <strong>0.95</strong> (Sag) or rising above <strong>1.05</strong> (Swell). A flat line near 1.0 is ideal.</p>
+        `
             },
             flowColumn: {
                 title: "Power Flow Direction",
                 content: `
-                    <p>Power can flow from Bus A to B, or B to A, depending on voltage angles.</p>
+            < p > Power can flow from Bus A to B, or B to A, depending on voltage angles.</p >
                     <p class="mt-2"><strong>From&rarr;To:</strong> Power leaving the first bus.</p>
                     <p><strong>To&rarr;From:</strong> Power arriving at the second bus (usually slightly less due to losses).</p>
-                `
+        `
             },
             lossColumn: {
                 title: "Line Loss (P & Q)",
                 content: `
-                    <p>The difference between power sent and power received.</p>
-                    <p class="mt-2">This energy heats up the aluminum conductors in the transmission lines.</p>
-                `
+            < p > The difference between power sent and power received.</p >
+                <p class="mt-2">This energy heats up the aluminum conductors in the transmission lines.</p>
+        `
             },
             opfMag: {
                 title: "Voltage Magnitude (p.u.)",
                 content: `
-                    <p>The pressure of electricity at the bus, normalized to a base value (Per Unit).</p>
-                    <p class="mt-2"><strong>1.0 p.u. = 100% Rated Voltage</strong> (e.g., 230 kV).</p>
-                `
+            < p > The pressure of electricity at the bus, normalized to a base value(Per Unit).</p >
+                <p class="mt-2"><strong>1.0 p.u. = 100% Rated Voltage</strong> (e.g., 230 kV).</p>
+        `
             },
             opfAngle: {
                 title: "Voltage Angle (deg)",
                 content: `
-                    <p>The phase shift of the AC waveform relative to the Slack Bus (0°).</p>
-                    <p class="mt-2">Power flows from <strong>Higher Angle</strong> to <strong>Lower Angle</strong>. Larger differences mean heavier power flow.</p>
-                `
+            < p > The phase shift of the AC waveform relative to the Slack Bus(0°).</p >
+                <p class="mt-2">Power flows from <strong>Higher Angle</strong> to <strong>Lower Angle</strong>. Larger differences mean heavier power flow.</p>
+        `
             }
         };
 
@@ -2122,7 +2154,7 @@
             list.innerHTML = '';
             activeBranches.forEach((b) => {
                 list.innerHTML += `
-                <li class="flex justify-between items-center p-1 hover:bg-blue-50 rounded group cursor-default">
+            <li class="flex justify-between items-center p-1 hover:bg-blue-50 rounded group cursor-default">
                     <span class="text-xs text-gray-400 font-mono group-hover:text-blue-500 transition">L${b.id}</span>
                     <span class="text-slate-700 font-medium text-xs">Bus ${b.from} <i class="ph ph-arrows-left-right text-[10px] text-gray-400"></i> Bus ${b.to}</span>
                 </li>`;
@@ -2139,7 +2171,7 @@
                     : `<button onclick="playSound(); deleteBus(${index})" class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 btn-click" title="Remove Bus"><i class="ph ph-trash"></i></button>`;
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 border-b border-gray-100 transition">
+            <tr class="hover:bg-slate-50 border-b border-gray-100 transition">
                         <td class="px-4 py-2 font-bold text-gray-700 bg-gray-50/50">
                             ${row.bus}
                             ${isSlack ? '<span class="ml-2 text-[10px] bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded border border-yellow-200 uppercase tracking-wide">Slack</span>' : ''}
@@ -2156,7 +2188,7 @@
                         <td class="px-4 py-2 border-l border-gray-100"><input type="number" class="input-edit text-blue-600 font-bold ${row.injQ === 0 ? 'opacity-50' : 'opacity-100'}" value="${row.injQ}" onchange="updateData(${index}, 'injQ', this.value)"></td>
                         <td class="px-4 py-2 text-right border-l border-gray-100">${deleteBtn}</td>
                     </tr>
-                `;
+            `;
             });
         }
 
@@ -2165,7 +2197,7 @@
             tbody.innerHTML = '';
             activeBranches.forEach((b, index) => {
                 tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50 border-b border-gray-100 transition">
+            <tr class="hover:bg-gray-50 border-b border-gray-100 transition">
                         <td class="px-6 py-3 font-mono text-xs text-gray-500">L${b.id}</td>
                         <td class="px-6 py-3 font-bold text-gray-700">Bus ${b.from}</td>
                         <td class="px-6 py-3 font-bold text-gray-700">Bus ${b.to}</td>
@@ -2174,7 +2206,7 @@
                             <button onclick="playSound(); removeLine(${index})" class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 btn-click"><i class="ph ph-trash"></i></button>
                         </td>
                     </tr>
-                `;
+            `;
             });
         }
 
@@ -2323,7 +2355,7 @@
             [fromSelect, toSelect].forEach(sel => {
                 sel.innerHTML = '';
                 buses.forEach(b => {
-                    sel.innerHTML += `<option value="${b}">Bus ${b}</option>`;
+                    sel.innerHTML += `< option value = "${b}" > Bus ${b}</option > `;
                 });
             });
         }
@@ -2394,7 +2426,7 @@
             // Visual Feedback
             const btn = document.getElementById('resetBtn');
             const originalHTML = btn.innerHTML;
-            btn.innerHTML = `<i class="ph ph-check"></i> Loaded!`;
+            btn.innerHTML = `< i class="ph ph-check" ></i > Loaded!`;
             btn.classList.add('text-green-600', 'bg-green-50', 'border-green-200');
             setTimeout(() => {
                 btn.innerHTML = originalHTML;
@@ -2416,7 +2448,7 @@
             // Generate
             const opt = {
                 margin: 0.5,
-                filename: `IEEE30-Sim-Report-${userName.replace(/\s+/g, '-')}.pdf`,
+                filename: `IEEE30 - Sim - Report - ${userName.replace(/\s+/g, '-')}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2 },
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
@@ -2452,7 +2484,7 @@
             // Step 1: Init
             solverQueue.push({
                 node: 'flow-start',
-                text: `> Step 1: Initialization. Set Flat Start for ${busCount}-Bus System.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ V_{start} = 1.0\\angle0^{\\circ}, \\quad S_{sch} \\text{ defined} $$</div>`,
+                text: `> Step 1: Initialization.Set Flat Start for ${busCount} - Bus System.< div class='text-white my-1 pl-4 text-xs opacity-90' > $$ V_{ start } = 1.0\\angle0 ^ { \\circ }, \\quad S_{ sch } \\text{ defined } $$</div > `,
                 eq: "$$ |V_i| = 1.0, \\delta_i = 0 \\quad \\forall i \\in \\text{PQ Buses} $$"
             });
 
@@ -2505,7 +2537,7 @@
                     let val = "";
                     if (r === c) {
                         // Diagonal: Sum of connected lines ~ (3 - j25) magnitude
-                        val = `${(5 + Math.random()).toFixed(2)} - j${(20 + Math.random() * 5).toFixed(2)}`;
+                        val = `${(5 + Math.random()).toFixed(2)} - j${(20 + Math.random() * 5).toFixed(2)} `;
                     } else {
                         // Check connection
                         const connected = activeBranches.some(b =>
@@ -2513,7 +2545,7 @@
                             (b.from === buses[c] && b.to === buses[r])
                         );
                         if (connected) {
-                            val = `${(-1.5).toFixed(2)} + j${(12.3).toFixed(2)}`;
+                            val = `${(-1.5).toFixed(2)} + j${(12.3).toFixed(2)} `;
                         } else {
                             val = "0";
                         }
@@ -2527,10 +2559,10 @@
 
             solverQueue.push({
                 node: 'flow-start',
-                text: `> Step 2: Build Admittance Matrix (Ybus). System Size: ${size}x${size}.<div class='text-white my-1 pl-4 text-xs opacity-90 max-h-60 overflow-y-auto scroll-custom border border-slate-600 p-2 bg-slate-800 rounded'>
-                ${yMatrixHTML}
-                ${size > displayLimit ? `<br><div class='text-center text-gray-500 italic'>... Matrix truncated for display (showing ${displayLimit}x${displayLimit}) ...</div>` : ''}
-                </div>`,
+                text: `> Step 2: Build Admittance Matrix(Ybus).System Size: ${size}x${size}.<div class='text-white my-1 pl-4 text-xs opacity-90 max-h-60 overflow-y-auto scroll-custom border border-slate-600 p-2 bg-slate-800 rounded'>
+            ${yMatrixHTML}
+            ${size > displayLimit ? `<br><div class='text-center text-gray-500 italic'>... Matrix truncated for display (showing ${displayLimit}x${displayLimit}) ...</div>` : ''}
+        </div>`,
                 eq: "$$ Y_{bus} = G + jB $$"
             });
 
@@ -2547,19 +2579,19 @@
                 // Mismatches - Detailed Formula
                 solverQueue.push({
                     node: 'flow-mismatch',
-                    text: `> Iteration ${iterations}: Calculating Flows.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ P_{calc} \\approx ${(1.0 - maxMismatch / 2).toFixed(4)} \\text{ p.u.}, \\quad Q_{calc} \\approx ${(0.5 - maxMismatch / 4).toFixed(4)} \\text{ p.u.} $$</div>`,
+                    text: `> Iteration ${iterations}: Calculating Flows.< div class='text-white my-1 pl-4 text-xs opacity-90' > $$ P_{ calc } \\approx ${(1.0 - maxMismatch / 2).toFixed(4)} \\text{ p.u.}, \\quad Q_{ calc } \\approx ${(0.5 - maxMismatch / 4).toFixed(4)} \\text{ p.u.} $$</div > `,
                     eq: "$$ P_i^{calc} = \\sum_{k=1}^N |V_i||V_k|(G_{ik}\\cos\\theta_{ik} + B_{ik}\\sin\\theta_{ik}) $$"
                 });
                 solverQueue.push({
                     node: 'flow-mismatch',
-                    text: `> Computing Residuals (Delta).<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ \\Delta P \\approx ${maxMismatch.toFixed(5)}, \\quad \\Delta Q \\approx ${(maxMismatch * 0.8).toFixed(5)} $$</div>`,
+                    text: `> Computing Residuals(Delta).< div class='text-white my-1 pl-4 text-xs opacity-90' > $$ \\Delta P \\approx ${maxMismatch.toFixed(5)}, \\quad \\Delta Q \\approx ${(maxMismatch * 0.8).toFixed(5)} $$</div > `,
                     eq: "$$ \\Delta P_i = P_i^{sch} - P_i^{calc} \\\\ \\Delta Q_i = Q_i^{sch} - Q_i^{calc} $$"
                 });
 
                 solverQueue.push({
                     node: 'flow-check',
-                    text: `  Convergence Check.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ \\max(\\Delta P) \\approx ${maxMismatch.toFixed(5)}, \\quad \\max(\\Delta Q) \\approx ${(maxMismatch * 0.9).toFixed(5)} $$</div>`,
-                    eq: `$$ \\max(|\\Delta P|, |\\Delta Q|) > \\epsilon (${tolerance}) $$`
+                    text: `  Convergence Check.< div class='text-white my-1 pl-4 text-xs opacity-90' > $$ \\max(\\Delta P) \\approx ${maxMismatch.toFixed(5)}, \\quad \\max(\\Delta Q) \\approx ${(maxMismatch * 0.9).toFixed(5)} $$</div > `,
+                    eq: `$$ \\max(|\\Delta P |, |\\Delta Q |) > \\epsilon(${tolerance}) $$`
                 });
 
                 // Jacobian - Matrix Structure (Detailed)
@@ -2596,7 +2628,7 @@
             } else {
                 solverQueue.push({
                     node: 'flow-check',
-                    text: `> FAILED TO CONVERGE.<div class='text-white my-1 pl-4 text-xs opacity-90'>$$ \\max(\\epsilon) = ${maxMismatch.toFixed(5)} > ${tolerance} $$</div>`,
+                    text: `> FAILED TO CONVERGE.< div class='text-white my-1 pl-4 text-xs opacity-90' > $$ \\max(\\epsilon) = ${maxMismatch.toFixed(5)} > ${tolerance} $$</div > `,
                     eq: `$$ \\text{Final Mismatch: } ${maxMismatch.toFixed(5)} > \\epsilon $$`
                 });
             }
@@ -2736,7 +2768,7 @@
                 }
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 border-b border-gray-100 transition">
+            <tr class="hover:bg-slate-50 border-b border-gray-100 transition">
                         <td class="px-6 py-3 font-medium">Bus ${branch.from}</td>
                         <td class="px-6 py-3 font-medium">Bus ${branch.to}</td>
                         <td class="px-6 py-3 font-mono text-right">${typeof p_ft === 'number' ? p_ft.toFixed(3) : p_ft} p.u.</td>
@@ -2744,7 +2776,7 @@
                         <td class="px-6 py-3 font-mono text-right text-red-600 font-bold">${typeof lossP === 'number' ? lossP.toFixed(3) : lossP}</td>
                         <td class="px-6 py-3 font-mono text-right text-red-600">${typeof lossQ === 'number' ? lossQ.toFixed(3) : lossQ}</td>
                     </tr>
-                `;
+            `;
             });
         }
 
@@ -2761,7 +2793,7 @@
             // Use the ieee30OPF dataset for Table 5 (Reference Data)
             ieee30OPF.forEach(row => {
                 tbody.innerHTML += `
-                    <tr class="border-b border-gray-50 hover:bg-slate-50 transition">
+            <tr class="border-b border-gray-50 hover:bg-slate-50 transition">
                         <td class="px-6 py-3 font-bold text-gray-700">${row.bus}</td>
                         <td class="px-6 py-3 font-mono text-blue-600 font-bold">${row.mag.toFixed(3)}</td>
                         <td class="px-6 py-3 font-mono">${row.ang}</td>
@@ -2770,7 +2802,7 @@
                         <td class="px-6 py-3 text-right font-mono">${row.lp.toFixed(2)}</td>
                         <td class="px-6 py-3 text-right font-mono text-gray-500">${row.lq.toFixed(2)}</td>
                     </tr>
-                `;
+            `;
             });
         }
 
@@ -2802,14 +2834,14 @@
                 }
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50 border-b border-gray-100 transition">
+            <tr class="hover:bg-gray-50 border-b border-gray-100 transition">
                         <td class="px-6 py-3 font-medium">Bus ${row.bus}</td>
                         <td class="px-6 py-3 font-mono text-blue-600 font-bold">${v.toFixed(3)} p.u.</td>
                         <td class="px-6 py-3">${pgcPass ? '<i class="ph ph-check-circle text-green-500"></i> Pass' : '<i class="ph ph-x-circle text-yellow-500"></i> Fail'}</td>
                         <td class="px-6 py-3">${pdcPass ? '<i class="ph ph-check-circle text-green-500"></i> Pass' : '<i class="ph ph-warning-circle text-red-500"></i> Fail'}</td>
                         <td class="px-6 py-3">${statusHtml}</td>
                     </tr>
-                `;
+            `;
             });
 
             const statusEl = document.getElementById('complianceStatus');
@@ -2837,7 +2869,7 @@
             chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: currentData.map(d => `B${d.bus}`),
+                    labels: currentData.map(d => `B${d.bus} `),
                     datasets: [{
                         label: 'Voltage Magnitude (p.u.)',
                         data: magnitudes,
@@ -2917,7 +2949,7 @@
                         tooltip: {
                             callbacks: {
                                 label: function (context) {
-                                    return `Mismatch: ${context.parsed.y.toExponential(4)}`;
+                                    return `Mismatch: ${context.parsed.y.toExponential(4)} `;
                                 }
                             }
                         }
@@ -2990,13 +3022,13 @@
                 const level = busLevels[bus.bus] * 2;
 
                 // Bus Node (Black Bar) with Voltage Info
-                let busLabel = `Bus ${bus.bus}`;
+                let busLabel = `Bus ${bus.bus} `;
                 if (showVoltage) {
                     busLabel += `\n${bus.mag.toFixed(3)} p.u.\n${bus.ang.toFixed(1)}°`;
                 }
 
                 nodes.add({
-                    id: `B-${bus.bus}`,
+                    id: `B - ${bus.bus} `,
                     label: busLabel,
                     level: level,
                     shape: 'box',
@@ -3023,7 +3055,7 @@
                     // Generator Node (Source -> Feeds INTO Bus)
                     if (bus.gp > 0 || bus.gq !== 0) {
                         nodes.add({
-                            id: `G-${bus.bus}`,
+                            id: `G - ${bus.bus} `,
                             label: `Gen\n${bus.gp.toFixed(1)} MW\n${bus.gq.toFixed(1)} Mvar`,
                             level: level - 1,
                             shape: 'circle',
@@ -3039,8 +3071,8 @@
                         });
 
                         edges.add({
-                            from: `G-${bus.bus}`,
-                            to: `B-${bus.bus}`,
+                            from: `G - ${bus.bus} `,
+                            to: `B - ${bus.bus} `,
                             width: 2,
                             color: 'black',
                             arrows: { to: { enabled: false } },
@@ -3051,7 +3083,7 @@
                     // Load Node (Load -> Draws FROM Bus)
                     if (bus.lp > 0 || bus.lq !== 0) {
                         nodes.add({
-                            id: `L-${bus.bus}`,
+                            id: `L - ${bus.bus} `,
                             label: `Load\n${bus.lp.toFixed(1)} MW\n${bus.lq.toFixed(1)} Mvar`,
                             level: level + 1,
                             shape: 'triangleDown',
@@ -3066,8 +3098,8 @@
                         });
 
                         edges.add({
-                            from: `B-${bus.bus}`,
-                            to: `L-${bus.bus}`,
+                            from: `B - ${bus.bus} `,
+                            to: `L - ${bus.bus} `,
                             width: 2,
                             color: 'black',
                             arrows: { to: { enabled: true, scaleFactor: 0.5, type: 'arrow' } },
@@ -3092,13 +3124,13 @@
                     const i_pu = s / 1.0; // Approx I = S/V (V~1.0)
                     // Convert to physical units (Base Current depends on Voltage level, simplified here to p.u. flow)
                     const mw = (p * 100).toFixed(1); // 100 MVA Base
-                    // label = `${mw} MW\nLoss: ${(flowData.lossP * 100).toFixed(2)} MW`;
+                    // label = `${ mw } MW\nLoss: ${ (flowData.lossP * 100).toFixed(2) } MW`;
                     label = `${mw} MW`;
                 }
 
                 edges.add({
-                    from: `B-${branch.from}`,
-                    to: `B-${branch.to}`,
+                    from: `B - ${branch.from} `,
+                    to: `B - ${branch.to} `,
                     label: label,
                     font: { align: 'horizontal', size: 9, background: 'rgba(255,255,255,0.8)', strokeWidth: 0 },
                     color: { color: '#3b82f6' }, // Blue lines
@@ -3226,13 +3258,13 @@
 
                 // Render Row
                 tableBody.innerHTML += `
-                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition ${rowClass}">
+            < tr class="border-b border-gray-100 hover:bg-gray-50 transition ${rowClass}" >
                         <td class="px-6 py-3 font-medium text-gray-700">Line ${line.id} (Bus ${line.from} - ${line.to})</td>
                         <td class="px-6 py-3">${isConnected ? '<i class="ph ph-check-circle text-green-500"></i> Connected' : '<i class="ph ph-warning-octagon text-red-600"></i> Split'}</td>
                         <td class="px-6 py-3 font-mono text-xs">${voltageStatus} ${isConnected ? `(${minVoltage.toFixed(3)} p.u.)` : ''}</td>
                         <td class="px-6 py-3 text-sm">${statusHtml}</td>
-                    </tr>
-                `;
+                    </tr >
+            `;
             });
 
             criticalEl.innerText = criticalCount;
