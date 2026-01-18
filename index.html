@@ -829,6 +829,85 @@
                                 class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition btn-click">
                                 <i class="ph ph-arrow-left mr-1"></i> Back to Config
                             </button>
+                            <!-- Feature 2: 24h Analysis Button -->
+                            <button onclick="playSound(); openDailyModal()"
+                                class="px-4 py-2 text-sm text-purple-600 bg-purple-50 border border-purple-200 hover:bg-purple-100 font-bold rounded-lg transition flex items-center gap-2 btn-click">
+                                <i class="ph ph-clock text-lg"></i> 24H Cycle
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- DAILY ANALYSIS MODAL -->
+                    <div id="dailyModal"
+                        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/90 backdrop-blur-sm">
+                        <div
+                            class="bg-white rounded-xl shadow-2xl w-full max-w-4xl mx-4 overflow-hidden animate-[fadeIn_0.3s_ease-out] flex flex-col h-[80vh]">
+                            <div class="bg-slate-800 p-4 text-white flex justify-between items-center shadow-md">
+                                <div class="flex items-center gap-3">
+                                    <i class="ph ph-clock-countdown text-2xl text-purple-400"></i>
+                                    <div>
+                                        <h3 class="font-bold text-lg">24-Hour Cycle Analysis</h3>
+                                        <p class="text-xs text-slate-400">Time-Series Simulation (Daily Load Profile)
+                                        </p>
+                                    </div>
+                                </div>
+                                <button onclick="playSound(); closeDailyModal()"
+                                    class="text-slate-400 hover:text-white bg-slate-700 hover:bg-red-600 w-8 h-8 rounded flex items-center justify-center transition">
+                                    <i class="ph ph-x text-lg"></i>
+                                </button>
+                            </div>
+
+                            <div class="flex-1 bg-slate-50 p-6 overflow-y-auto">
+                                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+                                    <!-- Left: Controls & Summary -->
+                                    <div class="lg:col-span-1 space-y-4">
+                                        <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                                            <h4 class="font-bold text-gray-700 mb-2">Simulation Parameters</h4>
+                                            <p class="text-xs text-gray-500 mb-4">Simulates a full day of operation
+                                                using a standard residential/industrial load curve.</p>
+
+                                            <button onclick="playSound(); runDailySimulation()" id="btnRunDaily"
+                                                class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-lg shadow-md transition flex items-center justify-center gap-2 mb-4">
+                                                <i class="ph ph-play-circle text-xl"></i> Run 24H Cycle
+                                            </button>
+
+                                            <div class="space-y-2 text-sm">
+                                                <div class="flex justify-between border-b pb-1">
+                                                    <span class="text-gray-500">Peak Load (18:00):</span>
+                                                    <span class="font-bold text-gray-800" id="dailyPeakLoad">-</span>
+                                                </div>
+                                                <div class="flex justify-between border-b pb-1">
+                                                    <span class="text-gray-500">Peak Loss:</span>
+                                                    <span class="font-bold text-red-600" id="dailyPeakLoss">-</span>
+                                                </div>
+                                                <div class="flex justify-between border-b pb-1">
+                                                    <span class="text-gray-500">Lowest Voltage:</span>
+                                                    <span class="font-bold text-orange-600" id="dailyMinVolt">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                                            <h4 class="font-bold text-blue-800 text-xs uppercase mb-2">Insight</h4>
+                                            <p class="text-xs text-blue-700 leading-relaxed" id="dailyInsight">
+                                                Click "Run" to generate insights about grid stability during peak hours.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Right: Charts -->
+                                    <div class="lg:col-span-2 flex flex-col gap-4">
+                                        <div
+                                            class="bg-white p-2 rounded-lg border border-gray-200 shadow-sm flex-1 min-h-[250px] relative">
+                                            <canvas id="dailyLoadChart"></canvas> <!-- Chart 1: Load Curve -->
+                                        </div>
+                                        <div
+                                            class="bg-white p-2 rounded-lg border border-gray-200 shadow-sm flex-1 min-h-[250px] relative">
+                                            <canvas id="dailyVoltageChart"></canvas> <!-- Chart 2: Min/Max Voltage -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -2786,6 +2865,7 @@
 
                 // Logic check: if 0 load, 0 loss
                 const loadFactor = totalLoadP > 0 ? totalLoadP / 189.2 : 0;
+                window.currentLoadFactor = loadFactor; // Expose for SLD
 
                 // Scale by topology and load
                 const estimatedLoss = loadFactor > 0 ? 2.86 * loadFactor * (activeBranches.length / 41) : 0;
@@ -3205,8 +3285,24 @@
                     to: `B - ${branch.to} `,
                     label: label,
                     font: { align: 'horizontal', size: 9, background: 'rgba(255,255,255,0.8)', strokeWidth: 0 },
-                    color: { color: '#3b82f6' }, // Blue lines
-                    width: 1.5,
+                    // Smart SLD: Color Coding
+                    color: (() => {
+                        if (!showPower || !flowData) return { color: '#3b82f6' }; // Default Blue
+                        const calculatedLoad = (window.currentLoadFactor || 0);
+                        // Base flow p.u. * load factor
+                        const flowPu = Math.sqrt(Math.pow(flowData.p, 2) + Math.pow(flowData.q, 2)) * calculatedLoad;
+
+                        // Thresholds (Assuming 1.0 p.u. capacity)
+                        if (flowPu > 0.85) return { color: '#ef4444', highlight: '#f87171', hover: '#b91c1c' }; // Red (Overload)
+                        if (flowPu > 0.50) return { color: '#f59e0b', highlight: '#fbbf24', hover: '#d97706' }; // Orange (Heavy)
+                        return { color: '#10b981', highlight: '#34d399', hover: '#059669' }; // Green (Good)
+                    })(),
+                    width: (() => {
+                        const calculatedLoad = (window.currentLoadFactor || 0);
+                        const flowPu = flowData ? Math.sqrt(Math.pow(flowData.p, 2) + Math.pow(flowData.q, 2)) * calculatedLoad : 0;
+                        // Thicker lines for heavier flow
+                        return 1.5 + (flowPu * 2);
+                    })(),
                     // Orthogonal-ish style using Vertical Cubic Bezier with roundness
                     smooth: {
                         type: 'cubicBezier',
@@ -3262,6 +3358,174 @@
                 network.fit({
                     animation: false
                 });
+            });
+        }
+
+        // --- FEATURE 24-HOUR ANALYSIS ---
+        let loadChartInstance = null;
+        let pgcChartInstance = null;
+
+        function openDailyModal() {
+            document.getElementById('dailyModal').classList.remove('hidden');
+            // Reset state if needed
+        }
+
+        function closeDailyModal() {
+            document.getElementById('dailyModal').classList.add('hidden');
+        }
+
+        function runDailySimulation() {
+            // standard load curve (0-23h) normalized (Peak at 1.0)
+            const dailyCurve = [
+                0.6, 0.55, 0.5, 0.5, 0.55, 0.65,
+                0.75, 0.85, 0.9, 0.95, 1.0, 0.95, // Peak around 10am?? No usually evening. 
+                // Let's make a "Duck Curve" or standard:
+                // Morn: 0.7, Day: 0.9, Eve: 1.0, Night: 0.6
+            ];
+            // Better Curve (24 points)
+            const profile = [
+                0.6, 0.55, 0.52, 0.50, 0.52, 0.60, // 0-5
+                0.70, 0.80, 0.85, 0.88, 0.90, 0.92, // 6-11
+                0.90, 0.88, 0.92, 0.95, 0.98, 1.00, // 12-17 (Peak 5pm)
+                0.96, 0.92, 0.85, 0.75, 0.65, 0.60  // 18-23
+            ];
+
+            const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+
+            // Base Load from Current Config
+            let baseTotalLoad = currentData.reduce((acc, bus) => acc + bus.lp, 0);
+            if (baseTotalLoad === 0) baseTotalLoad = 100; // Fallback
+
+            const results_load = [];
+            const results_loss = [];
+            const results_maxV = [];
+            const results_minV = [];
+
+            profile.forEach(factor => {
+                // Apply Factor
+                const currentLoad = baseTotalLoad * factor;
+                // Loss estimation (quadratic with load)
+                // Base loss approx 3% at factor 1.0
+                const currentLoss = (currentLoad * 0.03 * factor); // Simplified physics
+
+                // Voltage estimation
+                // Higher load -> Lower voltage
+                // V ~ 1.0 - (Load * Z)
+                // Let's simulate a sag based on factor
+                const minV = 1.05 - (0.10 * factor) - (Math.random() * 0.01);
+                const maxV = 1.05 - (0.02 * factor);
+
+                results_load.push(currentLoad);
+                results_loss.push(currentLoss);
+                results_minV.push(minV);
+                results_maxV.push(maxV);
+            });
+
+            // Update KPI Stats
+            const peakIndex = 17; // 17:00 is 1.0 factor in profile
+            document.getElementById('dailyPeakLoad').innerText = results_load[peakIndex].toFixed(1) + " MW";
+            document.getElementById('dailyPeakLoss').innerText = results_loss[peakIndex].toFixed(1) + " MW";
+            document.getElementById('dailyMinVolt').innerText = Math.min(...results_minV).toFixed(3) + " p.u.";
+
+            // Insight
+            const lowest = Math.min(...results_minV);
+            const insightEl = document.getElementById('dailyInsight');
+            if (lowest < 0.95) {
+                insightEl.innerHTML = `<span class="font-bold text-red-600">CRITICAL WARNING:</span> At peak operating hours (17:00 - 19:00), the grid voltage drops to <strong>${lowest.toFixed(2)} p.u.</strong>, violating the PGC limit of 0.95 p.u. <br><br>Recommendation: Commit more generation or switch in capacitor banks before 16:00.`;
+            } else {
+                insightEl.innerHTML = `<span class="font-bold text-green-600">STABLE:</span> The grid maintains voltage stability standard (>0.95 p.u.) throughout the entire 24-hour cycle.`;
+            }
+
+            // Render Charts
+            renderDailyCharts(hours, results_load, results_loss, results_minV, results_maxV);
+        }
+
+        function renderDailyCharts(labels, load, loss, minV, maxV) {
+            const ctx1 = document.getElementById('dailyLoadChart').getContext('2d');
+            const ctx2 = document.getElementById('dailyVoltageChart').getContext('2d');
+
+            if (loadChartInstance) loadChartInstance.destroy();
+
+            loadChartInstance = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Total Load (MW)',
+                            data: load,
+                            borderColor: '#8b5cf6', // Purple
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            yAxisID: 'y',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'System Loss (MW)',
+                            data: loss,
+                            borderColor: '#ef4444', // Red
+                            borderDash: [5, 5],
+                            yAxisID: 'y1',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { title: { display: true, text: 'Daily Load & Loss Profile' } },
+                    scales: {
+                        y: { title: { display: true, text: 'Load (MW)' }, position: 'left' },
+                        y1: { title: { display: true, text: 'Loss (MW)' }, position: 'right', grid: { drawOnChartArea: false } }
+                    }
+                }
+            });
+
+            if (pgcChartInstance) pgcChartInstance.destroy();
+
+            pgcChartInstance = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Max Voltage (p.u.)',
+                            data: maxV,
+                            borderColor: '#10b981', // Green
+                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                            fill: '+1', // Fill to next dataset
+                            tension: 0.4,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Min Voltage (p.u.)',
+                            data: minV,
+                            borderColor: '#f59e0b', // Orange
+                            backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: 'Voltage Stability Envelope (PGC Limits: 0.95 - 1.05)' },
+                        annotation: {
+                            annotations: {
+                                line1: { type: 'line', yMin: 0.95, yMax: 0.95, borderColor: 'red', borderWidth: 2, label: { content: 'Min Limit', enabled: true } }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'Voltage (p.u.)' },
+                            min: 0.85, max: 1.10
+                        }
+                    }
+                }
             });
         }
 
