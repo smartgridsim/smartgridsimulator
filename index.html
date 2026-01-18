@@ -528,11 +528,9 @@
                         <div class="flex items-center gap-3">
                             <!-- Bus Count Selection -->
                             <div class="flex items-center gap-2 bg-white border border-gray-300 rounded-lg px-3 py-2 shadow-sm"
-                                title="Select Number of Buses (5-30)">
-                                <label for="busCountInput" class="text-xs font-bold text-gray-600 uppercase">Bus
-                                    Count:</label>
-                                <input type="number" id="busCountInput" value="30" min="5" max="30"
-                                    class="w-12 text-sm font-mono text-right focus:outline-none border-b border-gray-200 focus:border-blue-500 text-slate-700">
+                                title="Current Bus Count">
+                                <span class="text-xs font-bold text-gray-600 uppercase">Bus Count:</span>
+                                <span id="busCountDisplay" class="font-mono text-sm font-bold text-blue-600">30</span>
                             </div>
 
                             <!-- NEW: Delta / Tolerance Input -->
@@ -1355,8 +1353,9 @@
             initAddLineModal(); // Refresh dropdowns with new buses
 
             // Update Bus Count Input in Dashboard
-            const dashInput = document.getElementById('busCountInput');
-            if (dashInput) dashInput.value = count;
+            // Update Bus Count Input in Dashboard
+            const dashDisplay = document.getElementById('busCountDisplay');
+            if (dashDisplay) dashDisplay.innerText = count;
 
             launchMainApp();
         }
@@ -1383,7 +1382,7 @@
 
             // Reset Inputs
             if (document.getElementById('setupBusCount')) document.getElementById('setupBusCount').value = "5";
-            if (document.getElementById('busCountInput')) document.getElementById('busCountInput').value = "30";
+            if (document.getElementById('busCountDisplay')) document.getElementById('busCountDisplay').innerText = "30";
 
             // Clear Result Tables
             const tables = ['lineFlowTableBody', 'complianceTableBody', 'inputTableBody', 'topologyTableBody'];
@@ -1857,6 +1856,10 @@
             currentData.push({ bus: newBusId, mag: 1.0, ang: 0, gp: 0, gq: 0, lp: 0, lq: 0, injQ: 0 });
             renderInputTable();
             initAddLineModal(); // Refresh modal options
+
+            // Update Display
+            const disp = document.getElementById('busCountDisplay');
+            if (disp) disp.innerText = currentData.length;
         }
 
         function populateTestValues() {
@@ -1954,10 +1957,16 @@
             activeBranches = activeBranches.filter(b => b.from !== busId && b.to !== busId);
 
             // UI Updates
+            // UI Updates
             renderInputTable();
-            renderTopologyInput();
+            renderTopologyInput(); // Refresh line table if lines removed
             renderSidebarTopology();
-            initAddLineModal();
+            initAddLineModal(); // Refresh modal options
+
+            // Update Bus Count Display
+            const disp = document.getElementById('busCountDisplay');
+            if (disp) disp.innerText = currentData.length;
+
         }
 
         function removeLine(index) {
@@ -2098,11 +2107,14 @@
 
             // Get User Defined Limits
             const toleranceInput = document.getElementById('toleranceInput');
-            const busCountInput = document.getElementById('busCountInput');
+            const busCountDisplay = document.getElementById('busCountDisplay');
 
             const maxIter = 20;
             const tolerance = toleranceInput ? (parseFloat(toleranceInput.value) || 0.0001) : 0.0001;
-            const busCount = busCountInput ? (parseInt(busCountInput.value) || 30) : 30;
+            // Use currentData length if available, otherwise fallback to display
+            const busCount = (typeof currentData !== 'undefined' && currentData.length > 0)
+                ? currentData.length
+                : (busCountDisplay ? (parseInt(busCountDisplay.innerText) || 30) : 30);
 
             // Step 1: Init
             solverQueue.push({
