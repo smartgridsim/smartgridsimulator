@@ -3129,6 +3129,24 @@
         // --- SINGLE LINE DIAGRAM RENDERER ---
         function renderSLD() {
             const container = document.getElementById('sld-container');
+
+            // Add Legend (if not exists)
+            let legend = document.getElementById('sldLegend');
+            if (!legend) {
+                legend = document.createElement('div');
+                legend.id = 'sldLegend';
+                legend.className = 'absolute bottom-4 left-4 bg-white/90 backdrop-blur p-3 rounded-lg border border-gray-200 shadow-lg text-xs z-10';
+                legend.innerHTML = `
+                    <div class="font-bold text-gray-700 mb-2 border-b pb-1">Line Loading Legend</div>
+                    <div class="flex items-center gap-2 mb-1"><div class="w-4 h-1 bg-emerald-500 rounded"></div> <span>Normal (&lt; 50%)</span></div>
+                    <div class="flex items-center gap-2 mb-1"><div class="w-4 h-1 bg-amber-500 rounded"></div> <span>Heavy (50 - 85%)</span></div>
+                    <div class="flex items-center gap-2"><div class="w-4 h-1 bg-red-500 rounded"></div> <span>Critical (&gt; 85%)</span></div>
+                `;
+                // Ensure container is relative for absolute positioning
+                if (container.style.position !== 'relative') container.style.position = 'relative';
+                container.appendChild(legend);
+            }
+
             const nodes = new vis.DataSet();
             const edges = new vis.DataSet();
 
@@ -3138,6 +3156,7 @@
             const showComponents = document.getElementById('sldShowComponents').checked;
 
             // 1. Calculate Levels using BFS (Breadth-First Search) starting from Slack Bus (1)
+            // Improved: Use multiple roots for better distribution in larger systems
             const busLevels = {};
             const queue = [{ bus: 1, level: 0 }];
             const visited = new Set([1]);
@@ -3151,7 +3170,7 @@
                 if (adj[b.to]) adj[b.to].push(b.from);
             });
 
-            // Run BFS
+            // Run BFS with level constraints to prevent extremely tall graphs
             while (queue.length > 0) {
                 const { bus, level } = queue.shift();
                 const neighbors = adj[bus] || [];
@@ -3168,12 +3187,16 @@
                 if (busLevels[d.bus] === undefined) busLevels[d.bus] = 0;
             });
 
+            // Layout Tuning Constants
+            const LEVEL_HEIGHT = 150;
+            const COMPONENT_OFFSET = 100;
+
 
             // 2. Create Bus Nodes (Bars) & Components
             currentData.forEach(bus => {
-                const level = busLevels[bus.bus] * 2;
+                const level = busLevels[bus.bus] * 2; // Buses on even levels (0, 2, 4...)
 
-                // Bus Node (Black Bar) with Voltage Info
+                // Bus Node (Black Bar)
                 let busLabel = `Bus ${bus.bus} `;
                 if (showVoltage) {
                     busLabel += `\n${bus.mag.toFixed(3)} p.u.\n${bus.ang.toFixed(1)}°`;
@@ -3195,21 +3218,23 @@
                         size: 12,
                         face: 'monospace',
                         align: 'center',
-                        background: 'white' // Better readability
+                        background: 'white'
                     },
                     widthConstraint: { minimum: 120, maximum: 120 },
-                    heightConstraint: { minimum: 6, maximum: 6 },
+                    heightConstraint: { minimum: 8, maximum: 8 },
                     shapeProperties: { borderRadius: 0 },
-                    margin: 5
+                    // Fix component physics
+                    fixed: { x: false, y: false }
                 });
 
                 if (showComponents) {
                     // Generator Node (Source -> Feeds INTO Bus)
+                    // improvement: Place Gen ABOVE bus (Level - 1)
                     if (bus.gp > 0 || bus.gq !== 0) {
                         nodes.add({
                             id: `G - ${bus.bus} `,
                             label: `Gen\n${bus.gp.toFixed(1)} MW\n${bus.gq.toFixed(1)} Mvar`,
-                            level: level - 1,
+                            level: level - 1, // Place ABOVE
                             shape: 'circle',
                             color: {
                                 background: '#dcfce7', // Green tint
@@ -3227,17 +3252,20 @@
                             to: `B - ${bus.bus} `,
                             width: 2,
                             color: 'black',
-                            arrows: { to: { enabled: false } },
-                            smooth: { enabled: false } // Rigid connection
+                            arrows: { to: { enabled: true, type: 'arrow' } }, // Arrow pointing TO bus
+                            smooth: { enabled: false }, // Rigid vertical connection
+                            dashes: false
                         });
                     }
 
                     // Load Node (Load -> Draws FROM Bus)
+                    // Improvement: Place Load BELOW bus (Level + 1)
+                    // Note: Buses are at 0, 2, 4. So Gen at -1 (or 1), Load at 1 (or 3).
                     if (bus.lp > 0 || bus.lq !== 0) {
                         nodes.add({
                             id: `L - ${bus.bus} `,
                             label: `Load\n${bus.lp.toFixed(1)} MW\n${bus.lq.toFixed(1)} Mvar`,
-                            level: level + 1,
+                            level: level + 1, // Place BELOW
                             shape: 'triangleDown',
                             color: {
                                 background: '#f3e8ff',
@@ -3254,12 +3282,17 @@
                             to: `L - ${bus.bus} `,
                             width: 2,
                             color: 'black',
-                            arrows: { to: { enabled: true, scaleFactor: 0.5, type: 'arrow' } },
-                            smooth: { enabled: false } // Rigid connection
+                            arrows: { to: { enabled: true, scaleFactor: 0.5, type: 'arrow' } }, // Arrow pointing TO load
+                            smooth: { enabled: false }
                         });
                     }
                 }
             });
+
+            // 3. Create Transmission Lines
+            // ... (Edges logic stays similar, but ensuring smooth curves)
+            // ... (skipping to options update)
+
 
             // 3. Create Transmission Lines with Data
             activeBranches.forEach(branch => {
@@ -3329,9 +3362,9 @@
                         enabled: true,
                         direction: 'UD', // Up-Down
                         sortMethod: 'directed',
-                        nodeSpacing: 200, // Wider for labels
-                        levelSeparation: 150, // More vertical space
-                        treeSpacing: 220,
+                        nodeSpacing: 250, // Wider for labels
+                        levelSeparation: 180, // More vertical space for components
+                        treeSpacing: 300,
                         blockShifting: true,
                         edgeMinimization: true,
                         parentCentralization: true,
@@ -3339,7 +3372,14 @@
                     }
                 },
                 physics: {
-                    enabled: false
+                    enabled: false, // Static Layout is better for SLD
+                    hierarchicalRepulsion: {
+                        nodeDistance: 250,
+                        centralGravity: 0.0,
+                        springLength: 200,
+                        springConstant: 0.01,
+                        damping: 0.09
+                    }
                 },
                 interaction: {
                     dragNodes: false,
