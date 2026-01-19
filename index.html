@@ -7,6 +7,18 @@
     <title>IEEE 30-Bus Smart Grid Simulator (PGC/PDC & IEEE Validated)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: { 850: '#1e293b' } // Custom dark slate
+                    }
+                }
+            }
+        }
+    </script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Phosphor Icons -->
@@ -313,7 +325,8 @@
     </style>
 </head>
 
-<body class="text-gray-800 h-screen flex flex-col overflow-hidden selection:bg-blue-200">
+<body
+    class="text-gray-800 dark:text-gray-100 bg-slate-50 dark:bg-slate-900 h-screen flex flex-col overflow-hidden selection:bg-blue-200 transition-colors duration-300">
 
     <!-- INTRO LANDING PAGE -->
     <div id="introPage" class="fixed inset-0 z-50 bg-slate-900 text-white overflow-y-auto">
@@ -471,18 +484,22 @@
     <!-- SETUP MODAL (Phase 2) -->
     <div id="setupModal"
         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden animate-[fadeIn_0.3s_ease-out]">
+        <div
+            class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden animate-[fadeIn_0.3s_ease-out]">
             <div class="p-6 text-center space-y-6">
                 <div>
-                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="ph ph-sliders text-3xl text-blue-600"></i>
+                    <div
+                        class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="ph ph-sliders text-3xl text-blue-600 dark:text-blue-400"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-gray-800">System Configuration</h3>
-                    <p class="text-gray-500 mt-2">Choose how you want to initialize the simulation environment.</p>
+                    <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100">System Configuration</h3>
+                    <p class="text-gray-500 dark:text-gray-400 mt-2">Choose how you want to initialize the simulation
+                        environment.</p>
                 </div>
 
-                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Custom Bus Network</label>
+                <div class="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg border border-gray-200 dark:border-slate-700">
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">Custom Bus
+                        Network</label>
                     <div class="flex items-center justify-center gap-2">
                         <input type="number" id="setupBusCount" value="5" min="5" max="30"
                             title="Enter a value between 5 and 30"
@@ -527,50 +544,85 @@
                         <p class="text-xs text-slate-400 font-medium">IEEE 30-Bus • PGC Compliant • IEEE Validated</p>
                     </div>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <div
-                        class="text-right hidden sm:block mr-4 bg-slate-800/50 px-3 py-1 rounded border border-slate-700">
-                        <p class="text-[10px] text-slate-400 uppercase tracking-wider">Operator</p>
-                        <p class="text-sm font-bold text-blue-200 flex items-center gap-1"><i
-                                class="ph ph-user-circle"></i> <span id="displayUserName">Guest</span></p>
+                <div class="flex items-center gap-2 md:gap-3">
+                    <!-- Operator Badge -->
+                    <div class="hidden md:flex flex-col items-end mr-1">
+                        <span class="text-[10px] text-slate-400 font-bold tracking-wider uppercase">Operator</span>
+                        <div class="flex items-center gap-1.5">
+                            <i class="ph ph-user-circle text-blue-400"></i>
+                            <span class="text-sm font-medium text-blue-100" id="displayUserName">Guest</span>
+                        </div>
                     </div>
-                    <!-- NEW: Detailed Help Procedure Button -->
+
+                    <!-- Vertical Divider -->
+                    <div class="h-6 w-px bg-slate-700 mx-1 hidden lg:block"></div>
+
+                    <!-- Tour Button (High Visibility) -->
                     <button onclick="playSound(); startTour()"
-                        class="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-1 px-3 rounded text-sm transition flex items-center gap-2 btn-click shadow-sm border border-amber-300">
-                        <i class="ph ph-flag-checkered"></i> Tour
+                        class="h-9 px-3 bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold text-sm rounded-md transition flex items-center gap-2 btn-click shadow-sm">
+                        <i class="ph ph-flag-checkered"></i> <span class="hidden xl:inline">Tour</span>
                     </button>
-                    <button onclick="playSound(); openHelp('procedure')"
-                        class="text-sm bg-blue-900/40 hover:bg-blue-900/60 text-blue-200 hover:text-white px-3 py-2 rounded-lg font-medium transition flex items-center gap-2 border border-blue-800/50 btn-click shadow-sm">
-                        <i class="ph ph-book-open text-lg"></i> User Manual
-                    </button>
-                    <!-- SLD Button -->
-                    <button onclick="playSound(); openSLDModal()"
-                        class="text-sm bg-cyan-900/40 hover:bg-cyan-900/60 text-cyan-300 hover:text-white px-3 py-2 rounded-lg font-medium transition flex items-center gap-2 border border-cyan-800/50 btn-click shadow-sm">
-                        <i class="ph ph-share-network text-lg"></i> View SLD
-                    </button>
-                    <button onclick="playSound(); exportScenario()"
-                        class="text-sm bg-emerald-900/40 hover:bg-emerald-900/60 text-emerald-300 hover:text-white px-3 py-2 rounded-lg font-medium transition flex items-center gap-2 border border-emerald-800/50 btn-click shadow-sm"
-                        title="Save Scenario to JSON">
-                        <i class="ph ph-download-simple text-lg"></i> Save
-                    </button>
-                    <input type="file" id="importFile" accept=".json" class="hidden" onchange="importScenario(this)">
-                    <button onclick="playSound(); document.getElementById('importFile').click()"
-                        class="text-sm bg-purple-900/40 hover:bg-purple-900/60 text-purple-300 hover:text-white px-3 py-2 rounded-lg font-medium transition flex items-center gap-2 border border-purple-800/50 btn-click shadow-sm"
-                        title="Load Scenario from JSON">
-                        <i class="ph ph-upload-simple text-lg"></i> Load
-                    </button>
-                    <button onclick="playSound(); goToLanding()"
-                        class="text-sm bg-red-900/30 hover:bg-red-900/50 text-red-200 hover:text-white px-3 py-2 rounded-lg font-medium transition flex items-center gap-2 border border-red-900/50 btn-click">
-                        <i class="ph ph-house text-lg"></i> Reset Home
-                    </button>
-                    <button onclick="playSound(); openAuthorModal()"
-                        class="text-sm text-slate-300 hover:text-white font-medium transition btn-click">
-                        About Authors
-                    </button>
+
+                    <!-- View Group (Manual, SLD) -->
+                    <div class="flex items-center bg-slate-800 rounded-lg p-1 border border-slate-700/50">
+                        <button onclick="playSound(); openHelp('procedure')"
+                            class="h-7 px-2.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded-md transition flex items-center gap-2 text-sm"
+                            title="User Manual">
+                            <i class="ph ph-book-open"></i> <span class="hidden xl:inline">Manual</span>
+                        </button>
+                        <div class="w-px h-4 bg-slate-700 mx-1"></div>
+                        <button onclick="playSound(); openSLDModal()"
+                            class="h-7 px-2.5 text-cyan-400 hover:text-white hover:bg-cyan-900/30 rounded-md transition flex items-center gap-2 text-sm"
+                            title="View Single Line Diagram">
+                            <i class="ph ph-share-network"></i> <span class="hidden xl:inline">SLD</span>
+                        </button>
+                    </div>
+
+                    <!-- File Group (Save, Load) -->
+                    <div class="flex items-center bg-slate-800 rounded-lg p-1 border border-slate-700/50">
+                        <button onclick="playSound(); exportScenario()"
+                            class="h-7 w-8 flex items-center justify-center text-emerald-400 hover:text-white hover:bg-emerald-900/30 rounded-md transition"
+                            title="Save Scenario">
+                            <i class="ph ph-download-simple"></i>
+                        </button>
+                        <div class="w-px h-4 bg-slate-700 mx-1"></div>
+                        <input type="file" id="importFile" accept=".json" class="hidden"
+                            onchange="importScenario(this)">
+                        <button onclick="playSound(); document.getElementById('importFile').click()"
+                            class="h-7 w-8 flex items-center justify-center text-purple-400 hover:text-white hover:bg-purple-900/30 rounded-md transition"
+                            title="Load Scenario">
+                            <i class="ph ph-upload-simple"></i>
+                        </button>
+                    </div>
+
+                    <!-- Vertical Divider -->
+                    <div class="h-6 w-px bg-slate-700 mx-1 hidden lg:block"></div>
+
+                    <!-- Utility Group (Reset, Theme, Info) -->
+                    <div class="flex items-center gap-1">
+                        <button onclick="playSound(); goToLanding()"
+                            class="h-9 w-9 flex items-center justify-center text-red-300 hover:bg-red-900/20 hover:text-red-200 rounded-md transition btn-click"
+                            title="Reset to Home">
+                            <i class="ph ph-house text-lg"></i>
+                        </button>
+
+                        <button onclick="playSound(); toggleTheme()" id="themeToggleBtn"
+                            class="h-9 w-9 flex items-center justify-center text-yellow-400 hover:bg-slate-800 rounded-md transition btn-click">
+                            <i class="ph ph-sun text-lg"></i>
+                        </button>
+
+                        <button onclick="playSound(); openAuthorModal()"
+                            class="h-9 w-9 flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:text-white rounded-md transition btn-click"
+                            title="About Authors">
+                            <i class="ph ph-info text-lg"></i>
+                        </button>
+                    </div>
+
+                    <!-- Primary Action -->
                     <button onclick="playSound(); runSimulation()" id="runBtn"
-                        class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-lg transition transform hover:scale-105 shadow-md flex items-center space-x-2 btn-click ring-2 ring-blue-400/20">
+                        class="ml-2 h-10 px-5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm rounded-lg transition transform hover:scale-105 shadow-md flex items-center gap-2 btn-click ring-2 ring-blue-500/20">
                         <i class="ph ph-play-circle text-xl"></i>
-                        <span>Run Simulation</span>
+                        <span class="hidden sm:inline">Run Simulation</span>
                     </button>
                 </div>
             </div>
@@ -581,7 +633,7 @@
 
             <!-- Sidebar (Visual Topology List) -->
             <aside
-                class="w-64 bg-white border-r border-gray-200 overflow-y-auto scroll-custom hidden lg:block z-0 shadow-inner">
+                class="w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 overflow-y-auto scroll-custom hidden lg:block z-0 shadow-inner">
                 <div class="p-4">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Active Topology</h2>
@@ -590,7 +642,8 @@
                             <i class="ph ph-info text-sm"></i>
                         </button>
                     </div>
-                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 mb-4 relative hover-scale">
+                    <div
+                        class="bg-slate-50 dark:bg-slate-800/80 p-3 rounded-lg border border-slate-100 dark:border-slate-700 mb-4 relative hover-scale">
                         <button onclick="playSound(); openHelp('gridStatus')"
                             class="absolute top-2 right-2 info-btn-sm"><i class="ph ph-question text-xs"></i></button>
                         <div class="text-xs text-gray-500">Grid Status</div>
@@ -604,21 +657,22 @@
                                 class="ph ph-question text-xs"></i></button>
                     </div>
                     <div
-                        class="bg-gray-50 rounded-lg border border-gray-200 h-[calc(100vh-250px)] overflow-y-auto scroll-custom p-2 text-sm font-mono text-gray-600 shadow-inner">
+                        class="bg-gray-50 dark:bg-slate-950 rounded-lg border border-gray-200 dark:border-slate-700 h-[calc(100vh-250px)] overflow-y-auto scroll-custom p-2 text-sm font-mono text-gray-600 dark:text-gray-400 shadow-inner">
                         <ul id="sidebarTopologyList" class="space-y-1"></ul>
                     </div>
                 </div>
             </aside>
 
             <!-- Central Canvas -->
-            <div class="flex-1 overflow-y-auto scroll-custom bg-slate-50 p-4 md:p-8 relative w-full">
+            <div class="flex-1 overflow-y-auto scroll-custom bg-slate-50 dark:bg-slate-900 p-4 md:p-8 relative w-full">
 
                 <!-- Input State -->
                 <div id="inputState" class="max-w-7xl mx-auto space-y-6 fade-in">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <div class="flex items-center gap-2">
-                                <h2 class="text-2xl font-bold text-slate-800">System Configuration</h2>
+                                <h2 class="text-2xl font-bold text-slate-800 dark:text-gray-100">System Configuration
+                                </h2>
                                 <button onclick="playSound(); openHelp('config')" class="info-btn"
                                     title="Configuration Help">
                                     <i class="ph ph-info text-sm"></i>
@@ -629,7 +683,7 @@
                         </div>
                         <div class="flex items-center gap-3">
                             <!-- Bus Count Selection -->
-                            <div class="flex items-center gap-2 bg-white border border-gray-300 rounded-lg px-3 py-2 shadow-sm"
+                            <div class="flex items-center gap-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 shadow-sm"
                                 title="Current Bus Count">
                                 <span class="text-xs font-bold text-gray-600 uppercase">Bus Count:</span>
                                 <span id="busCountDisplay" class="font-mono text-sm font-bold text-blue-600">30</span>
@@ -656,17 +710,19 @@
                     </div>
 
                     <!-- Input Tabs -->
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                        <div class="border-b border-gray-200 bg-gray-50 px-4">
+                    <div
+                        class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 overflow-hidden">
+                        <div
+                            class="border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50 px-4">
                             <nav class="-mb-px flex space-x-8">
                                 <button id="tab-input-bus-data" onclick="switchInputTab('bus-data')"
-                                    class="tab-active px-4 py-2 text-sm font-medium rounded-t-lg bg-white border-b-2 border-blue-600 text-blue-600 flex items-center gap-2 transition-colors">
+                                    class="tab-active px-4 py-2 text-sm font-medium rounded-t-lg bg-white dark:bg-slate-800 border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 flex items-center gap-2 transition-colors">
                                     <i class="ph ph-table"></i> Bus Data
                                     <i class="ph ph-question text-xs text-blue-300 hover:text-blue-500 cursor-pointer"
                                         onclick="event.stopPropagation(); openHelp('busData')"></i>
                                 </button>
                                 <button onclick="playSound(); switchInputTab('topology')" id="tab-input-topology"
-                                    class="tab-inactive py-3 px-4 border-b-2 border-transparent font-medium text-sm flex items-center gap-2 transition-colors">
+                                    class="tab-inactive py-3 px-4 border-b-2 border-transparent font-medium text-sm flex items-center gap-2 transition-colors dark:text-gray-400 dark:hover:text-gray-200">
                                     <i class="ph ph-share-network"></i> Grid Topology
                                     <span onclick="event.stopPropagation(); openHelp('topology')" class="info-btn-sm"
                                         title="Topology Guide">
@@ -679,7 +735,7 @@
                         <!-- Bus Data Input Table -->
                         <div id="input-bus-data" class="overflow-x-auto h-[600px] scroll-custom p-6">
                             <div class="flex justify-between items-center mb-4">
-                                <h3 class="font-bold text-gray-700">System Bus Configuration</h3>
+                                <h3 class="font-bold text-gray-700 dark:text-gray-200">System Bus Configuration</h3>
                                 <div class="flex gap-2">
                                     <button onclick="playSound(); populateTestValues()"
                                         class="px-3 py-1 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded border border-amber-200 text-sm font-semibold flex items-center gap-2 btn-click"
@@ -693,49 +749,57 @@
                                 </div>
                             </div>
                             <table
-                                class="min-w-full text-sm text-left text-gray-600 border border-gray-200 rounded-lg overflow-hidden">
-                                <thead class="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 z-10 shadow-sm">
+                                class="min-w-full text-sm text-left text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                                <thead
+                                    class="text-xs text-gray-700 dark:text-gray-300 uppercase bg-gray-100 dark:bg-slate-900 sticky top-0 z-10 shadow-sm">
                                     <tr>
-                                        <th class="px-4 py-3 bg-gray-100 w-20">Bus <span
+                                        <th class="px-4 py-3 bg-gray-100 dark:bg-slate-900 w-20">Bus <span
                                                 onclick="playSound(); openHelp('busColumn')" class="info-btn-sm"><i
                                                     class="ph ph-info text-xs"></i></span></th>
-                                        <th class="px-4 py-3 bg-gray-100 text-center border-l border-gray-200"
+                                        <th class="px-4 py-3 bg-gray-100 dark:bg-slate-900 text-center border-l border-gray-200 dark:border-slate-700"
                                             colspan="2">
                                             Voltage
                                         </th>
-                                        <th class="px-4 py-3 bg-gray-100 text-center border-l border-gray-200"
+                                        <th class="px-4 py-3 bg-gray-100 dark:bg-slate-900 text-center border-l border-gray-200 dark:border-slate-700"
                                             colspan="2">
                                             Generation <span onclick="playSound(); openHelp('genColumn')"
                                                 class="info-btn-sm"><i class="ph ph-info text-xs"></i></span>
                                         </th>
-                                        <th class="px-4 py-3 bg-gray-100 text-center border-l border-gray-200"
+                                        <th class="px-4 py-3 bg-gray-100 dark:bg-slate-900 text-center border-l border-gray-200 dark:border-slate-700"
                                             colspan="2">
                                             Load <span onclick="playSound(); openHelp('loadColumn')"
                                                 class="info-btn-sm"><i class="ph ph-info text-xs"></i></span>
                                         </th>
-                                        <th class="px-4 py-3 bg-gray-100 text-center border-l border-gray-200">
+                                        <th
+                                            class="px-4 py-3 bg-gray-100 dark:bg-slate-900 text-center border-l border-gray-200 dark:border-slate-700">
                                             Injection <span onclick="playSound(); openHelp('injColumn')"
                                                 class="info-btn-sm"><i class="ph ph-info text-xs"></i></span>
                                         </th>
-                                        <th class="px-4 py-3 bg-gray-100 text-right border-l border-gray-200">Action
+                                        <th
+                                            class="px-4 py-3 bg-gray-100 dark:bg-slate-900 text-right border-l border-gray-200 dark:border-slate-700">
+                                            Action
                                         </th>
                                     </tr>
                                     <tr>
-                                        <th class="px-4 py-2 bg-gray-50 text-gray-400 font-normal">ID</th>
+                                        <th class="px-4 py-2 bg-gray-50 dark:bg-slate-800 text-gray-400 font-normal">ID
+                                        </th>
                                         <th
-                                            class="px-4 py-2 bg-gray-50 text-right font-normal border-l border-gray-200">
+                                            class="px-4 py-2 bg-gray-50 dark:bg-slate-800 text-right font-normal border-l border-gray-200 dark:border-slate-700">
                                             Mag</th>
-                                        <th class="px-4 py-2 bg-gray-50 text-right font-normal">Angle (deg)</th>
+                                        <th class="px-4 py-2 bg-gray-50 dark:bg-slate-800 text-right font-normal">Angle
+                                            (deg)</th>
                                         <th
-                                            class="px-4 py-2 bg-gray-50 text-right font-normal border-l border-gray-200">
+                                            class="px-4 py-2 bg-gray-50 dark:bg-slate-800 text-right font-normal border-l border-gray-200 dark:border-slate-700">
                                             P (MW)</th>
-                                        <th class="px-4 py-2 bg-gray-50 text-right font-normal">Q (Mvar)</th>
+                                        <th class="px-4 py-2 bg-gray-50 dark:bg-slate-800 text-right font-normal">Q
+                                            (Mvar)</th>
                                         <th
-                                            class="px-4 py-2 bg-gray-50 text-right font-normal border-l border-gray-200">
+                                            class="px-4 py-2 bg-gray-50 dark:bg-slate-800 text-right font-normal border-l border-gray-200 dark:border-slate-700">
                                             P (MW)</th>
-                                        <th class="px-4 py-2 bg-gray-50 text-right font-normal">Q (Mvar)</th>
+                                        <th class="px-4 py-2 bg-gray-50 dark:bg-slate-800 text-right font-normal">Q
+                                            (Mvar)</th>
                                         <th
-                                            class="px-4 py-2 bg-gray-50 text-right font-normal border-l border-gray-200">
+                                            class="px-4 py-2 bg-gray-50 dark:bg-slate-800 text-right font-normal border-l border-gray-200 dark:border-slate-700">
                                             Q (Mvar)</th>
                                         <th class="px-4 py-2 bg-gray-50 border-l border-gray-200"></th>
                                     </tr>
@@ -814,7 +878,7 @@
 
                     <div class="flex items-center justify-between" id="resultsControls">
                         <div class="flex items-center gap-2">
-                            <h2 class="text-2xl font-bold text-slate-800">Simulation Output</h2>
+                            <h2 class="text-2xl font-bold text-slate-800 dark:text-gray-100">Simulation Output</h2>
                             <button onclick="playSound(); openHelp('results')" class="info-btn"
                                 title="Results Analysis Guide">
                                 <i class="ph ph-info text-sm"></i>
@@ -826,7 +890,7 @@
                                 <i class="ph ph-file-pdf text-lg"></i> Export Report
                             </button>
                             <button onclick="playSound(); resetSimulation()"
-                                class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition btn-click">
+                                class="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition btn-click">
                                 <i class="ph ph-arrow-left mr-1"></i> Back to Config
                             </button>
                             <!-- Feature 2: 24h Analysis Button -->
@@ -841,7 +905,7 @@
                     <div id="dailyModal"
                         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/90 backdrop-blur-sm">
                         <div
-                            class="bg-white rounded-xl shadow-2xl w-full max-w-4xl mx-4 overflow-hidden animate-[fadeIn_0.3s_ease-out] flex flex-col h-[80vh]">
+                            class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-4xl mx-4 overflow-hidden animate-[fadeIn_0.3s_ease-out] flex flex-col h-[80vh]">
                             <div class="bg-slate-800 p-4 text-white flex justify-between items-center shadow-md">
                                 <div class="flex items-center gap-3">
                                     <i class="ph ph-clock-countdown text-2xl text-purple-400"></i>
@@ -857,11 +921,12 @@
                                 </button>
                             </div>
 
-                            <div class="flex-1 bg-slate-50 p-6 overflow-y-auto">
+                            <div class="flex-1 bg-slate-50 dark:bg-slate-950 p-6 overflow-y-auto">
                                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
                                     <!-- Left: Controls & Summary -->
                                     <div class="lg:col-span-1 space-y-4">
-                                        <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                                        <div
+                                            class="bg-white dark:bg-slate-800 p-4 rounded-lg border border-gray-200 dark:border-slate-700 shadow-sm">
                                             <h4 class="font-bold text-gray-700 mb-2">Simulation Parameters</h4>
                                             <p class="text-xs text-gray-500 mb-4">Simulates a full day of operation
                                                 using a standard residential/industrial load curve.</p>
@@ -914,7 +979,7 @@
                     <!-- KPI Cards -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                         <div
-                            class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden group hover:border-blue-300 transition hover-scale">
+                            class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm relative overflow-hidden group hover:border-blue-300 transition hover-scale">
                             <button onclick="playSound(); openHelp('kpiGen')"
                                 class="absolute top-2 right-2 info-btn-sm z-10"><i
                                     class="ph ph-question text-xs"></i></button>
@@ -924,7 +989,7 @@
                             <div class="text-2xl font-bold text-blue-600 mt-1" id="totalGenDisplay">0 MW</div>
                         </div>
                         <div
-                            class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden group hover:border-purple-300 transition hover-scale">
+                            class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm relative overflow-hidden group hover:border-purple-300 transition hover-scale">
                             <button onclick="playSound(); openHelp('kpiLoad')"
                                 class="absolute top-2 right-2 info-btn-sm z-10"><i
                                     class="ph ph-question text-xs"></i></button>
@@ -934,7 +999,7 @@
                             <div class="text-2xl font-bold text-purple-600 mt-1" id="totalLoadDisplay">0 MW</div>
                         </div>
                         <div
-                            class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden group hover:border-red-300 transition hover-scale">
+                            class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm relative overflow-hidden group hover:border-red-300 transition hover-scale">
                             <button onclick="playSound(); openHelp('kpiLoss')"
                                 class="absolute top-2 right-2 info-btn-sm z-10"><i
                                     class="ph ph-question text-xs"></i></button>
@@ -944,7 +1009,7 @@
                             <div class="text-2xl font-bold text-red-600 mt-1" id="totalLossDisplay">2.86 MW</div>
                         </div>
                         <div
-                            class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden group hover:border-emerald-300 transition hover-scale">
+                            class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm relative overflow-hidden group hover:border-emerald-300 transition hover-scale">
                             <button onclick="playSound(); openHelp('kpiStatus')"
                                 class="absolute top-2 right-2 info-btn-sm z-10"><i
                                     class="ph ph-question text-xs"></i></button>
@@ -956,7 +1021,7 @@
                     </div>
 
                     <!-- Results Tabs -->
-                    <div class="border-b border-gray-200 bg-white sticky top-0 z-20">
+                    <div class="border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800">
                         <nav class="-mb-px flex space-x-6 overflow-x-auto px-4">
                             <button onclick="playSound(); switchTab('line-flows')" id="tab-line-flows"
                                 class="tab-active py-4 px-2 border-b-2 font-medium text-sm whitespace-nowrap flex items-center gap-1 transition-colors">
@@ -2260,9 +2325,9 @@
             list.innerHTML = '';
             activeBranches.forEach((b) => {
                 list.innerHTML += `
-            <li class="flex justify-between items-center p-1 hover:bg-blue-50 rounded group cursor-default">
-                    <span class="text-xs text-gray-400 font-mono group-hover:text-blue-500 transition">L${b.id}</span>
-                    <span class="text-slate-700 font-medium text-xs">Bus ${b.from} <i class="ph ph-arrows-left-right text-[10px] text-gray-400"></i> Bus ${b.to}</span>
+            <li class="flex justify-between items-center p-1 hover:bg-blue-50 dark:hover:bg-slate-700/50 rounded group cursor-default border-b border-transparent dark:border-slate-800">
+                    <span class="text-xs text-gray-400 dark:text-gray-500 font-mono group-hover:text-blue-500 dark:group-hover:text-blue-400 transition">L${b.id}</span>
+                    <span class="text-slate-700 dark:text-slate-300 font-medium text-xs">Bus ${b.from} <i class="ph ph-arrows-left-right text-[10px] text-gray-400"></i> Bus ${b.to}</span>
                 </li>`;
             });
         }
@@ -2277,22 +2342,23 @@
                     : `<button onclick="playSound(); deleteBus(${index})" class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 btn-click" title="Remove Bus"><i class="ph ph-trash"></i></button>`;
 
                 tbody.innerHTML += `
-            <tr class="hover:bg-slate-50 border-b border-gray-100 transition">
-                        <td class="px-4 py-2 font-bold text-gray-700 bg-gray-50/50">
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 border-b border-gray-100 dark:border-slate-700 transition">
+                        <td class="px-4 py-2 font-bold text-gray-700 dark:text-gray-200 bg-gray-50/50 dark:bg-slate-800/50">
                             ${row.bus}
                             ${isSlack ? '<span class="ml-2 text-[10px] bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded border border-yellow-200 uppercase tracking-wide">Slack</span>' : ''}
                         </td>
                         
-                        <td class="px-4 py-2 border-l border-gray-100"><input type="number" step="0.01" class="input-edit text-gray-700" value="${row.mag}" onchange="updateData(${index}, 'mag', this.value)"></td>
-                        <td class="px-4 py-2"><input type="number" step="0.1" class="input-edit ${isSlack ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700'}" value="${row.ang}" ${isSlack ? 'disabled' : ''} onchange="updateData(${index}, 'ang', this.value)"></td>
-                        <td class="px-4 py-2 border-l border-gray-100"><input type="number" class="input-edit ${row.gp === 0 ? 'text-gray-300' : 'text-gray-700'}" value="${row.gp}" onchange="updateData(${index}, 'gp', this.value)"></td>
-                        <td class="px-4 py-2"><input type="number" class="input-edit ${row.gq === 0 ? 'text-gray-300' : 'text-gray-700'}" value="${row.gq}" onchange="updateData(${index}, 'gq', this.value)"></td>
                         
-                        <td class="px-4 py-2 border-l border-gray-100"><input type="number" class="input-edit ${row.lp === 0 ? 'text-gray-300' : 'text-gray-700'}" value="${row.lp}" onchange="updateData(${index}, 'lp', this.value)"></td>
-                        <td class="px-4 py-2"><input type="number" class="input-edit ${row.lq === 0 ? 'text-gray-300' : 'text-gray-700'}" value="${row.lq}" onchange="updateData(${index}, 'lq', this.value)"></td>
+                        <td class="px-4 py-2 border-l border-gray-100 dark:border-slate-700"><input type="number" step="0.01" class="input-edit text-gray-700 dark:text-gray-200 dark:bg-transparent w-full focus:outline-none" value="${row.mag}" onchange="updateData(${index}, 'mag', this.value)"></td>
+                        <td class="px-4 py-2"><input type="number" step="0.1" class="input-edit ${isSlack ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700 dark:text-gray-200'} dark:bg-transparent w-full focus:outline-none" value="${row.ang}" ${isSlack ? 'disabled' : ''} onchange="updateData(${index}, 'ang', this.value)"></td>
+                        <td class="px-4 py-2 border-l border-gray-100 dark:border-slate-700"><input type="number" class="input-edit ${row.gp === 0 ? 'text-gray-300 dark:text-gray-600' : 'text-gray-700 dark:text-gray-200'} dark:bg-transparent w-full focus:outline-none" value="${row.gp}" onchange="updateData(${index}, 'gp', this.value)"></td>
+                        <td class="px-4 py-2"><input type="number" class="input-edit ${row.gq === 0 ? 'text-gray-300 dark:text-gray-600' : 'text-gray-700 dark:text-gray-200'} dark:bg-transparent w-full focus:outline-none" value="${row.gq}" onchange="updateData(${index}, 'gq', this.value)"></td>
                         
-                        <td class="px-4 py-2 border-l border-gray-100"><input type="number" class="input-edit text-blue-600 font-bold ${row.injQ === 0 ? 'opacity-50' : 'opacity-100'}" value="${row.injQ}" onchange="updateData(${index}, 'injQ', this.value)"></td>
-                        <td class="px-4 py-2 text-right border-l border-gray-100">${deleteBtn}</td>
+                        <td class="px-4 py-2 border-l border-gray-100 dark:border-slate-700"><input type="number" class="input-edit ${row.lp === 0 ? 'text-gray-300 dark:text-gray-600' : 'text-gray-700 dark:text-gray-200'} dark:bg-transparent w-full focus:outline-none" value="${row.lp}" onchange="updateData(${index}, 'lp', this.value)"></td>
+                        <td class="px-4 py-2"><input type="number" class="input-edit ${row.lq === 0 ? 'text-gray-300 dark:text-gray-600' : 'text-gray-700 dark:text-gray-200'} dark:bg-transparent w-full focus:outline-none" value="${row.lq}" onchange="updateData(${index}, 'lq', this.value)"></td>
+                        
+                        <td class="px-4 py-2 border-l border-gray-100 dark:border-slate-700"><input type="number" class="input-edit text-blue-600 dark:text-blue-400 font-bold ${row.injQ === 0 ? 'opacity-50' : 'opacity-100'} dark:bg-transparent w-full focus:outline-none" value="${row.injQ}" onchange="updateData(${index}, 'injQ', this.value)"></td>
+                        <td class="px-4 py-2 text-right border-l border-gray-100 dark:border-slate-700">${deleteBtn}</td>
                     </tr>
             `;
             });
@@ -2742,7 +2808,9 @@
                 solverQueue.push({
                     node: 'flow-check',
                     text: `  Convergence Check.< div class='text-white my-1 pl-4 text-xs opacity-90' > $$ \\max(\\Delta P) \\approx ${maxMismatch.toFixed(5)}, \\quad \\max(\\Delta Q) \\approx ${(maxMismatch * 0.9).toFixed(5)} $$</div > `,
-                    eq: `$$ \\max(|\\Delta P |, |\\Delta Q |) > \\epsilon(${tolerance}) $$`
+                    eq: `$$ \\max(|\\Delta P |, |\\Delta Q |) > \\epsilon(${tolerance}) $$`,
+                    iterationNum: iterations,
+                    mismatchVal: maxMismatch
                 });
 
                 // Jacobian - Matrix Structure (Detailed)
@@ -2818,11 +2886,17 @@
             eqDisplay.innerHTML = step.eq;
             // Retrigger MathJax if available
             if (window.MathJax) MathJax.typesetPromise([eqDisplay]);
+
+            // NEW: Update Convergence Chart if mismatch data is present
+            if (step.mismatchVal !== undefined) {
+                updateConvergenceChart(step.iterationNum, step.mismatchVal);
+            }
         }
 
         function startSolverAnim() {
             if (solverInterval) clearInterval(solverInterval);
             document.getElementById('interactiveMathLog').innerHTML = ''; // Clear log on restart
+            resetConvergenceChart(); // Clear chart
             currentSolverStep = 0;
             solverInterval = setInterval(() => {
                 renderSolverStep(currentSolverStep);
@@ -2839,6 +2913,7 @@
         function resetSolverAnim() {
             if (solverInterval) clearInterval(solverInterval);
             currentSolverStep = 0;
+            resetConvergenceChart(); // reset chart
             document.getElementById('interactiveMathLog').innerHTML = '<span class="text-gray-500 opacity-50">Ready. Press Start.</span>';
             document.querySelectorAll('.flow-node').forEach(el => el.classList.remove('flow-active'));
             document.getElementById('activeEqDisplay').innerHTML = "$$ f(x) = 0 $$";
@@ -3126,18 +3201,34 @@
             });
         }
 
+        function updateConvergenceChart(iteration, mismatch) {
+            if (!convergenceChartInstance) return;
+            // append data
+            convergenceChartInstance.data.labels.push(iteration);
+            convergenceChartInstance.data.datasets[0].data.push(mismatch);
+            convergenceChartInstance.update();
+        }
+
+        function resetConvergenceChart() {
+            if (!convergenceChartInstance) return;
+            convergenceChartInstance.data.labels = [];
+            convergenceChartInstance.data.datasets[0].data = [];
+            convergenceChartInstance.update();
+        }
+
         // --- SINGLE LINE DIAGRAM RENDERER ---
         function renderSLD() {
             const container = document.getElementById('sld-container');
+            const isDark = document.documentElement.classList.contains('dark');
 
             // Add Legend (if not exists)
             let legend = document.getElementById('sldLegend');
             if (!legend) {
                 legend = document.createElement('div');
                 legend.id = 'sldLegend';
-                legend.className = 'absolute bottom-4 left-4 bg-white/90 backdrop-blur p-3 rounded-lg border border-gray-200 shadow-lg text-xs z-10';
+                legend.className = 'absolute bottom-4 left-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur p-3 rounded-lg border border-gray-200 dark:border-slate-700 shadow-lg text-xs z-10 dark:text-gray-200';
                 legend.innerHTML = `
-                    <div class="font-bold text-gray-700 mb-2 border-b pb-1">Line Loading Legend</div>
+                    <div class="font-bold text-gray-700 dark:text-gray-200 mb-2 border-b dark:border-gray-600 pb-1">Line Loading Legend</div>
                     <div class="flex items-center gap-2 mb-1"><div class="w-4 h-1 bg-emerald-500 rounded"></div> <span>Normal (&lt; 50%)</span></div>
                     <div class="flex items-center gap-2 mb-1"><div class="w-4 h-1 bg-amber-500 rounded"></div> <span>Heavy (50 - 85%)</span></div>
                     <div class="flex items-center gap-2"><div class="w-4 h-1 bg-red-500 rounded"></div> <span>Critical (&gt; 85%)</span></div>
@@ -3194,7 +3285,8 @@
 
             // 2. Create Bus Nodes (Bars) & Components
             currentData.forEach(bus => {
-                const level = busLevels[bus.bus] * 2; // Buses on even levels (0, 2, 4...)
+                const level = busLevels[bus.bus] * 4; // Spaced out levels (0, 4, 8, 12...)
+                // This leaves room at L-1 and L+1 for components, and L+2, L+3 for cross-lines
 
                 // Bus Node (Black Bar)
                 let busLabel = `Bus ${bus.bus} `;
@@ -3208,17 +3300,17 @@
                     level: level,
                     shape: 'box',
                     color: {
-                        background: 'black',
-                        border: 'black',
+                        background: isDark ? '#cbd5e1' : 'black',
+                        border: isDark ? '#cbd5e1' : 'black',
                         highlight: { background: '#333', border: '#333' }
                     },
                     font: {
-                        color: 'black',
+                        color: isDark ? '#f1f5f9' : 'black',
                         vadjust: -35,
                         size: 12,
                         face: 'monospace',
                         align: 'center',
-                        background: 'white'
+                        background: isDark ? '#1e293b' : 'white'
                     },
                     widthConstraint: { minimum: 120, maximum: 120 },
                     heightConstraint: { minimum: 8, maximum: 8 },
@@ -3229,12 +3321,11 @@
 
                 if (showComponents) {
                     // Generator Node (Source -> Feeds INTO Bus)
-                    // improvement: Place Gen ABOVE bus (Level - 1)
                     if (bus.gp > 0 || bus.gq !== 0) {
                         nodes.add({
                             id: `G - ${bus.bus} `,
                             label: `Gen\n${bus.gp.toFixed(1)} MW\n${bus.gq.toFixed(1)} Mvar`,
-                            level: level - 1, // Place ABOVE
+                            level: level - 1, // Place DIRECTLY ABOVE Bus
                             shape: 'circle',
                             color: {
                                 background: '#dcfce7', // Green tint
@@ -3253,19 +3344,17 @@
                             width: 2,
                             color: 'black',
                             arrows: { to: { enabled: true, type: 'arrow' } }, // Arrow pointing TO bus
-                            smooth: { enabled: false }, // Rigid vertical connection
+                            smooth: { enabled: false }, // Rigid connection
                             dashes: false
                         });
                     }
 
                     // Load Node (Load -> Draws FROM Bus)
-                    // Improvement: Place Load BELOW bus (Level + 1)
-                    // Note: Buses are at 0, 2, 4. So Gen at -1 (or 1), Load at 1 (or 3).
                     if (bus.lp > 0 || bus.lq !== 0) {
                         nodes.add({
                             id: `L - ${bus.bus} `,
                             label: `Load\n${bus.lp.toFixed(1)} MW\n${bus.lq.toFixed(1)} Mvar`,
-                            level: level + 1, // Place BELOW
+                            level: level + 1, // Place DIRECTLY BELOW Bus
                             shape: 'triangleDown',
                             color: {
                                 background: '#f3e8ff',
@@ -3320,7 +3409,7 @@
                     font: { align: 'horizontal', size: 9, background: 'rgba(255,255,255,0.8)', strokeWidth: 0 },
                     // Smart SLD: Color Coding
                     color: (() => {
-                        if (!showPower || !flowData) return { color: '#3b82f6' }; // Default Blue
+                        if (!showPower || !flowData) return { color: isDark ? '#60a5fa' : '#3b82f6' }; // Default Blue
                         const calculatedLoad = (window.currentLoadFactor || 0);
                         // Base flow p.u. * load factor
                         const flowPu = Math.sqrt(Math.pow(flowData.p, 2) + Math.pow(flowData.q, 2)) * calculatedLoad;
@@ -3355,15 +3444,20 @@
                 },
                 edges: {
                     shadow: false,
-                    color: { inherit: false }
+                    color: { inherit: false },
+                    smooth: {
+                        type: 'cubicBezier',
+                        forceDirection: 'vertical',
+                        roundness: 0.5
+                    }
                 },
                 layout: {
                     hierarchical: {
                         enabled: true,
-                        direction: 'UD', // Up-Down
+                        direction: 'UD', // Up-Down standard for SLD
                         sortMethod: 'directed',
-                        nodeSpacing: 250, // Wider for labels
-                        levelSeparation: 180, // More vertical space for components
+                        nodeSpacing: 300, // Wide spacing to prevent label overlap
+                        levelSeparation: 150, // Distinct vertical bands
                         treeSpacing: 300,
                         blockShifting: true,
                         edgeMinimization: true,
@@ -3372,17 +3466,18 @@
                     }
                 },
                 physics: {
-                    enabled: false, // Static Layout is better for SLD
+                    enabled: false, // Static is cleaner for schematics once levels are enforced
                     hierarchicalRepulsion: {
-                        nodeDistance: 250,
+                        nodeDistance: 300,
                         centralGravity: 0.0,
                         springLength: 200,
                         springConstant: 0.01,
-                        damping: 0.09
+                        damping: 0.09,
+                        avoidOverlap: 1
                     }
                 },
                 interaction: {
-                    dragNodes: false,
+                    dragNodes: true,
                     zoomView: true,
                     dragView: true,
                     hover: true
@@ -3700,6 +3795,75 @@
                 renderSLD(); // Force re-render to apply current toggle states
             }
         }
+        // --- DARK MODE LOGIC ---
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+
+            updateThemeButton();
+            updateChartTheme();
+
+            // Re-render components that use canvas or dynamic colors
+            if (typeof renderSLD === 'function') renderSLD();
+        }
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+
+            updateThemeButton();
+            updateChartTheme();
+        }
+
+        function updateThemeButton() {
+            const btn = document.getElementById('themeToggleBtn');
+            if (!btn) return;
+
+            const isDark = document.documentElement.classList.contains('dark');
+            // Preserve layout classes (h-9 w-9) and just update color themes
+            btn.className = "h-9 w-9 flex items-center justify-center rounded-md transition btn-click " +
+                (isDark ? "text-indigo-400 hover:bg-slate-800 hover:text-white" : "text-yellow-400 hover:bg-slate-800 hover:text-white");
+
+            btn.innerHTML = isDark
+                ? '<i class="ph ph-moon-stars text-lg"></i>'
+                : '<i class="ph ph-sun text-lg"></i>';
+        }
+
+        function updateChartTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#94a3b8' : '#64748b'; // slate-400 vs slate-500
+            const gridColor = isDark ? '#334155' : '#e2e8f0'; // slate-700 vs slate-200
+
+            Chart.defaults.color = textColor;
+            Chart.defaults.borderColor = gridColor;
+
+            // Update Active Charts
+            [chartInstance, loadChartInstance, pgcChartInstance, convergenceChartInstance].forEach(chart => {
+                if (chart) {
+                    chart.options.scales.x.grid.color = gridColor;
+                    chart.options.scales.x.ticks.color = textColor;
+                    if (chart.options.scales.y) {
+                        chart.options.scales.y.grid.color = gridColor;
+                        chart.options.scales.y.ticks.color = textColor;
+                    }
+                    if (chart.options.scales.y1) {
+                        chart.options.scales.y1.grid.color = gridColor;
+                        chart.options.scales.y1.ticks.color = textColor;
+                    }
+                    chart.update('none'); // Update without animation
+                }
+            });
+        }
+
+        // Initialize Theme on Load
+        initTheme();
+
     </script>
 </body>
 
